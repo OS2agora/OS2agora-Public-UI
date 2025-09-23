@@ -1,0 +1,21 @@
+import * as React from "react";
+
+function SvgChevron(props) {
+  return (
+    <svg
+      viewBox="0 0 12 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      {...props}
+    >
+      <path
+        d="M1.125.828l-.938.89c-.187.235-.187.61 0 .798L8.672 11 .187 19.531c-.187.188-.187.563 0 .797l.938.89a.54.54 0 00.797 0l9.844-9.796a.635.635 0 000-.797L1.922.828a.54.54 0 00-.797 0z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export default SvgChevron;

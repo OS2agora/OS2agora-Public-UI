@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+!.*
+CHANGELOG.md
+README.md
+tailwind.config.js
+next-env.d.ts
+postcss.config.js
+next.config.js
+components/icons/
+storybook-static

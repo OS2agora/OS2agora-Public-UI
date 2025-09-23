@@ -1,0 +1,9 @@
+.git/
+**/.gitignore
+**/.gitkeep
+**/.DS_Store
+src/.next/
+.dockerignore
+src/node_modules/
+src/README.md
+src/.env.example

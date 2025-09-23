@@ -1,0 +1,24 @@
+export { default as ArchiveIcon } from "./components/Archive";
+export { default as CalendarIcon } from "./components/Calendar";
+export { default as CheckCircleIcon } from "./components/CheckCircle";
+export { default as CheckSquareIcon } from "./components/CheckSquare";
+export { default as CheckSquareFilledIcon } from "./components/CheckSquareFilled";
+export { default as ChevronIcon } from "./components/Chevron";
+export { default as CircleIcon } from "./components/Circle";
+export { default as CommentIcon } from "./components/Comment";
+export { default as DotCircleIcon } from "./components/DotCircle";
+export { default as EditIcon } from "./components/Edit";
+export { default as ExclamationCircleIcon } from "./components/ExclamationCircle";
+export { default as FileIcon } from "./components/File";
+export { default as FolderIcon } from "./components/Folder";
+export { default as ListIcon } from "./components/List";
+export { default as LoupeIcon } from "./components/Loupe";
+export { default as SpinnerIcon } from "./components/Spinner";
+export { default as SquareIcon } from "./components/Square";
+export { default as TimesIcon } from "./components/Times";
+export { default as TrashIcon } from "./components/Trash";
+export { default as UploadIcon } from "./components/Upload";
+export { default as UserCircleIcon } from "./components/UserCircle";
+export { default as UserEditIcon } from "./components/UserEdit";
+
+export { default as IconMap } from "./iconMap";

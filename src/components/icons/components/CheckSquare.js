@@ -1,0 +1,21 @@
+import * as React from "react";
+
+function SvgCheckSquare(props) {
+  return (
+    <svg
+      viewBox="0 0 21 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      {...props}
+    >
+      <path
+        d="M18.75.5H2.25A2.25 2.25 0 000 2.75v16.5a2.22 2.22 0 002.25 2.25h16.5A2.25 2.25 0 0021 19.25V2.75C21 1.531 19.969.5 18.75.5zm0 18.75H2.25V2.75h16.5v16.5zM17.062 7.953a.635.635 0 000-.797l-1.078-1.078c-.187-.234-.562-.234-.796 0l-6.61 6.563-2.812-2.813a.54.54 0 00-.797 0L3.89 10.86c-.188.235-.188.61 0 .797l4.265 4.313a.54.54 0 00.797 0l8.11-8.016z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export default SvgCheckSquare;

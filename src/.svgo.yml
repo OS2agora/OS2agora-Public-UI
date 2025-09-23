@@ -1,0 +1,39 @@
+multipass: true
+
+plugins:
+  - removeDoctype: true
+  - removeXMLProcInst: false
+  - removeComments: true
+  - removeMetadata: true
+  - removeEditorsNSData: true
+  - cleanupAttrs: true
+  - cleanupIDs: true
+  - prefixIds: true
+  - removeUselessDefs: true
+  - removeUnknownsAndDefaults: true
+  - removeNonInheritableGroupAttrs: true
+  - removeUselessStrokeAndFill: true
+  - removeViewBox: false
+  - cleanupEnableBackground: true
+  - removeHiddenElems: true
+  - removeEmptyText: true
+  - collapseGroups: true
+  - convertPathData: true
+  - convertTransform: true
+  - inlineStyles:
+      onlyMatchedOnce: false
+  - convertStyleToAttrs: true
+  - convertColors:
+      currentColor: true
+  - removeEmptyAttrs: true
+  - removeEmptyContainers: true
+  - mergePaths: true
+  - removeUnusedNS: true
+  - removeTitle: true
+  - removeDesc: true
+  - removeDimensions: true
+  - removeStyleElement: true
+
+js2svg:
+  pretty: true
+  indent: '  '
