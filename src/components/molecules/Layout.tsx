@@ -6,7 +6,9 @@ import useBootstrap from "../../hooks/useBootstrap";
 import { useQueryClient } from "react-query";
 import { GlobalMessage } from "./GlobalMessage";
 import Head from "next/head";
+import Script from "next/script";
 import React from "react";
+import { LoginModal, LoginModalProps } from "./LoginModal";
 
 type LinkProps = {
   text: string;
@@ -14,7 +16,7 @@ type LinkProps = {
 };
 
 type ImageProps = {
-  src: string;
+  src: string | undefined;
   alt: string;
 };
 
@@ -22,6 +24,7 @@ type LayoutProps = {
   classes?: string;
   children: React.ReactNode;
   header: HeaderProps;
+  loginModal: LoginModalProps;
   footer: {
     externalLinks: LinkProps[];
     internalLinks: LinkProps[];
@@ -34,7 +37,7 @@ const styling = {
   root: "h-screen flex flex-col",
 };
 
-const Layout = ({ classes, children, header, footer, ...rest }: LayoutProps) => {
+const Layout = ({ classes, children, header, loginModal, footer, ...rest }: LayoutProps) => {
   const className = clsx(styling.root, classes);
   const queryClient = useQueryClient();
   const _ = useBootstrap(queryClient);
@@ -42,19 +45,24 @@ const Layout = ({ classes, children, header, footer, ...rest }: LayoutProps) => 
   return (
     <div className={className} {...rest}>
       <Head>
-        <script src="/__ENV.js" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
+      <Script src="/__ENV.js" strategy="beforeInteractive" />
       <Header
         image={{ src: header.image.src, alt: header.image.alt }}
         title={header.title}
         preTitle={header.preTitle}
         loginText={header.loginText}
         logoutText={header.logoutText}
-        loggedOnBehalfOfText={header.loggedOnBehalfOfText}
         myHearingsText={header.myHearingsText}
+        loggedOnBehalfOfText={header.loggedOnBehalfOfText}
       />
       <GlobalMessage />
+      <LoginModal
+        title={loginModal.title}
+        loginCitizenOrCompanyText={loginModal.loginCitizenOrCompanyText}
+        loginEmployeeText={loginModal.loginEmployeeText}
+      />
       {children}
       <Footer
         textLines={footer.textLines}

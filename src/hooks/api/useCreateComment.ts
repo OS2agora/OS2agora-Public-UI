@@ -6,6 +6,7 @@ import { CreateCommentDto, parseApiErrors } from "../../utilities/apiHelper";
 import { commentCreated, commentError } from "../../utilities/globalMessage";
 import { useAppConfigContext } from "../useAppConfig";
 import { useTranslation } from "../useTranslation";
+import { HEARING_COMMENTS_ROUTE } from "../../utilities/constants/routes";
 
 type CreateCommentProps = {
   hearingId: string;
@@ -43,7 +44,7 @@ function useCreateComment() {
     onSuccess: (_, variables) => {
       commentCreated(appContext!, translate, () =>
         router.push({
-          pathname: "/hearing/[hearingId]/comments",
+          pathname: HEARING_COMMENTS_ROUTE,
           query: { hearingId: variables.hearingId },
         })
       );

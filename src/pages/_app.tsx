@@ -1,11 +1,11 @@
-import * as React from "react";
-
+import React from "react";
 import type { AppProps } from "next/app";
-import Router, { useRouter } from "next/router";
-
+import { useRouter } from "next/router";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Hydrate } from "react-query/hydration";
 import { ReactQueryDevtools } from "react-query/devtools";
+
+import { appWithTranslation } from "next-i18next";
 
 import "../styles/tailwind.css";
 import {
@@ -16,17 +16,19 @@ import {
   Auth,
   initialGlobalmessage,
   initialMe,
+  LoginSettings,
 } from "../contexts/AppConfig";
-import { Layout } from "../components/molecules/Layout";
-import { TranslationContext } from "../contexts/Translation";
-
-import { da } from "../content/da";
-import { en } from "../content/en";
+import { LayoutWithTranslations } from "../components/layouts/LayoutWithTranslations";
 import { PageLoading } from "../components/atoms/PageLoading";
 import { fetchVersion } from "../hooks/api/useVersion";
 
 import { getApiBaseUrl, urlJoin } from "../utilities/apiHelper";
-import env from "@beam-australia/react-env";
+import { PaginatedItems } from "../utilities/constants/paginatedItems";
+import { getPageSize, getPaginationEnabled } from "../utilities/paginationHelper";
+import { CookieBanner } from "../components/molecules/CookieBanner";
+import { useCookieConsent } from "../hooks/useCookieConsent";
+import { ENV_VARIABLE } from "../utilities/constants/environmentVariables";
+import { readEnvironmentVariable } from "../utilities/environmentHelper";
 
 interface HPWindow extends Window {
   HP_VERSION: {
@@ -48,19 +50,34 @@ function MyApp({ Component, pageProps }: AppProps) {
     isAuthorizing: false,
     me: initialMe,
   });
+  const [loginSettings, setLoginSettings] = React.useState<LoginSettings>({ showLoginModal: false, redirectUri: null });
 
   const [loading, setLoading] = React.useState(false);
   const [language, setLanguage] = React.useState("da");
+  const [theme, setTheme] = React.useState(readEnvironmentVariable(ENV_VARIABLE.THEME) ?? "novataris");
 
-  const xApiHeader = env("X_API_HEADER");
+  const xApiHeader = readEnvironmentVariable(ENV_VARIABLE.X_API_HEADER);
   const apiUrl = getApiBaseUrl() as string;
   const buildVersion = process.env.NEXT_PUBLIC_BUILD_VERSION;
 
-  function doLogin(redirectUri: string) {
+  const pagination = {
+    [PaginatedItems.HEARINGS]: {
+      enabled: getPaginationEnabled(PaginatedItems.HEARINGS),
+      pageSize: getPageSize(PaginatedItems.HEARINGS),
+    },
+    [PaginatedItems.COMMENTS]: {
+      enabled: getPaginationEnabled(PaginatedItems.COMMENTS),
+      pageSize: getPageSize(PaginatedItems.COMMENTS),
+    },
+  };
+
+  const { didConsent: didCookieConsent, onConsent: onCookieConsent } = useCookieConsent();
+
+  function doLogin(redirectUri: string, loginAs: number) {
     const apiKey = typeof xApiHeader !== "undefined" ? xApiHeader : null;
     router.push({
-      pathname: urlJoin(apiUrl, "authentication/CodeFlowLogin"),
-      query: { redirectUri, apiKey },
+      pathname: urlJoin(apiUrl, "authentication/Login"),
+      query: { redirectUri, loginAs, apiKey },
     });
   }
 
@@ -83,6 +100,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     setApp,
     auth,
     setAuth,
+    loginSettings,
+    setLoginSettings,
     doLogin,
     doLogout,
     language,
@@ -91,11 +110,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     setGlobalMessage: setGlobalmessage,
     loading,
     setLoading,
+    pagination,
+    theme,
   };
 
-  const translations = language === "da" ? da : en;
-
-  const queryClientRef = React.useRef<QueryClient>();
+  const queryClientRef = React.useRef<QueryClient>(undefined);
   if (!queryClientRef.current) {
     queryClientRef.current = new QueryClient({
       defaultOptions: {
@@ -111,6 +130,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     setVersion().then(({ be, fe }) => {
       window.HP_VERSION = { fe: fe || null, be: be || null };
     });
+    setTheme(readEnvironmentVariable(ENV_VARIABLE.THEME));
     const start = () => {
       setLoading(true);
     };
@@ -119,60 +139,27 @@ function MyApp({ Component, pageProps }: AppProps) {
       setLoading(false);
     };
 
-    Router.events.on("routeChangeStart", start);
-    Router.events.on("routeChangeComplete", end);
-    Router.events.on("routeChangeError", end);
+    router.events.on("routeChangeStart", start);
+    router.events.on("routeChangeComplete", end);
+    router.events.on("routeChangeError", end);
     return () => {
-      Router.events.off("routeChangeStart", start);
-      Router.events.off("routeChangeComplete", end);
-      Router.events.off("routeChangeError", end);
+      router.events.off("routeChangeStart", start);
+      router.events.off("routeChangeComplete", end);
+      router.events.off("routeChangeError", end);
     };
   }, []);
 
   return (
     <AppConfigContext.Provider value={appConfig}>
-      <TranslationContext.Provider value={translations}>
-        <QueryClientProvider client={queryClientRef.current}>
-          <Hydrate state={pageProps.dehydratedState}>
-            <Layout
-              header={{
-                image: { src: "/logo.svg", alt: "Ballerup Kommune Logo" },
-                title: "Digital Høringsportal",
-                preTitle: "Ballerup Kommune - ",
-                loginText: "Log ind",
-                logoutText: "Log ud",
-                loggedOnBehalfOfText: "På vegne af:",
-                myHearingsText: "Mine høringer",
-              }}
-              footer={{
-                image: { src: "/logo-white.png", alt: "Ballerup Kommune Logo" },
-                textLines: [
-                  "BALLERUP",
-                  "KOMMUNE",
-                  "Hold-an Vej 7",
-                  "2750 Ballerup",
-                  "Tlf.: 4477 2000",
-                  "Fax.: 4477 2730",
-                  "CVR-nr.: 58271713",
-                ],
-                internalLinks: [
-                  { text: "Tilgængelighedserklæring", href: "/was" },
-                  { text: "Databeskyttelse", href: "/termsAndConditions" },
-                ],
-                externalLinks: [
-                  { text: "www.ballerup.dk", href: "https://ballerup.dk/" },
-                  { text: "Kontakt", href: "https://ballerup.dk/om-kommunen/kontakt-os" },
-                ],
-              }}
-            >
-              {loading ? <PageLoading /> : <Component {...pageProps} />}
-            </Layout>
-          </Hydrate>
-          <ReactQueryDevtools />
-        </QueryClientProvider>
-      </TranslationContext.Provider>
+      <QueryClientProvider client={queryClientRef.current}>
+        <Hydrate state={pageProps.dehydratedState}>
+          <CookieBanner show={!didCookieConsent} onAccept={() => onCookieConsent()} />
+          <LayoutWithTranslations>{loading ? <PageLoading /> : <Component {...pageProps} />}</LayoutWithTranslations>
+        </Hydrate>
+        <ReactQueryDevtools />
+      </QueryClientProvider>
     </AppConfigContext.Provider>
   );
 }
 
-export default MyApp;
+export default appWithTranslation(MyApp);

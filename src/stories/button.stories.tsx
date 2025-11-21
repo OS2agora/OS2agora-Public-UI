@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Buttons/Button",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "Button");
+const knobText = () => text("Text", "Novataris Kommune", "Button");
 const knobVariantSelection = () => select("Variant", ["primary", "secondary"], "primary", "Button");
 const knobDisabled = () => boolean("Disabled", false, "Button");
 

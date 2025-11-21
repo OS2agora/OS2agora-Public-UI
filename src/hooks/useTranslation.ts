@@ -1,25 +1,17 @@
-import { useContext } from "react";
-import { TranslationContext } from "../contexts/Translation";
+import { useTranslation as usei18n } from "next-i18next";
+import { useAppConfigContext } from "./useAppConfig";
 
 function useTranslation() {
-  const translationContext = useContext(TranslationContext);
+  const appContext = useAppConfigContext();
+  const theme = appContext?.theme;
+  const { t: i18ntranslate } = usei18n([theme, "default"]);
 
   function translate(page: string, key: string): string {
-    const translatedPage = translationContext![page];
-
-    if (translatedPage === null) {
-      return "Missing Translation Provider";
+    let output = i18ntranslate(`${page}.${key}`);
+    if (output === `${page}.${key}`) {
+      output = i18ntranslate(`default:${page}.${key}`);
     }
-
-    if (typeof translatedPage === "undefined" || translatedPage === null) {
-      return `Missing translation for page: ${page}`;
-    }
-
-    const translatedKey = translatedPage[key];
-    if (typeof translatedKey === "undefined" || translatedKey === null) {
-      return `Missing translation for key: ${key} on page: ${page}`;
-    }
-    return translatedKey;
+    return output;
   }
 
   function translateWithReplace(page: string, key: string, searchValue: string, replaceValue: string) {

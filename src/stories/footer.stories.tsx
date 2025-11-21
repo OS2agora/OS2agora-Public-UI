@@ -5,7 +5,7 @@ export default {
   title: "Design System/Molecules/Footer",
 };
 
-const textLines = ["BALLERUP", "KOMMUNE", "Hold-an vej 7", "2750 Ballerup", "Tlf.: 4477 2000", "Fax: 4477 2730"];
+const textLines = ["NOVATARIS", "KOMMUNE", "Nyhavn 43", "1051 København K", "Tlf.: 7027 8000", "Fax: 1234 5678"];
 const internalLinks = [
   { text: "Tilgængelighedserklæring", href: "/" },
   { text: "Databeskyttelse", href: "/" },
@@ -14,7 +14,7 @@ const externalLinks = [
   { text: "Om Kommunen", href: "/" },
   { text: "Kontakt", href: "/" },
 ];
-const image = { src: "/logo-white.png", alt: "Ballerup Kommune Logo" };
+const image = { src: "/images/novataris/mainLogo.png", alt: "Novataris Kommune Logo" };
 
 export const Footer = () => (
   <FooterMolecule

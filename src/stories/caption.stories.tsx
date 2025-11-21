@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Typography/Caption",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "Caption");
+const knobText = () => text("Text", "Novataris Kommune", "Caption");
 const knobTypeSelection = () => select("Type", ["large", "heavy", "regular", "light"], "regular", "Caption");
 
 export const Caption = () => <CaptionAtom type={knobTypeSelection()}>{knobText()}</CaptionAtom>;

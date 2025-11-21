@@ -12,7 +12,7 @@ const styling = {
   fitToHeight: "h-full transform -translate-x-1/2",
 };
 
-const getClassName = (width: number, height: number, aspectRatio: number, classes: string): any => {
+const getClassName = (width: number, height: number, aspectRatio: number, classes: string | undefined): any => {
   const calculatedAspectRatio = width / height;
   const fitToWidth = calculatedAspectRatio <= aspectRatio;
   return clsx(fitToWidth ? styling.fitToWidth : styling.fitToHeight, classes);

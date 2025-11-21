@@ -13,9 +13,9 @@ type TextareaProps = FieldHookConfig<string> & {
 
 const styling = {
   container: "relative resize-none",
-  root: "bg-grey-textField border-2 p-4 border-blue-grey w-full",
+  root: "bg-grey-text-field border-2 p-4 border-blue-grey w-full",
   placeholder: "placeholder-grey-dark font-Lato text-sm leading-5",
-  error: "bg-grey-textField border p-4 border-red w-full",
+  error: "bg-grey-text-field border p-4 border-red w-full",
   errorIcon: "absolute right-4 top-4 text-red",
   input: "h-36",
   label: "sr-only",

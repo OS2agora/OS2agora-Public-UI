@@ -6,7 +6,7 @@ type FullsizeContainerProps = {
 };
 
 const styling = {
-  root: "-mx-5 tablet:mx-tabletNegativeContainer desktop:mx-desktopNegativeContainer w-screen",
+  root: "-mx-5 tablet:mx-tablet-negative-container desktop:mx-desktop-negative-container w-screen",
 };
 
 const FullsizeContainer = ({ classes, children, ...rest }: FullsizeContainerProps) => {

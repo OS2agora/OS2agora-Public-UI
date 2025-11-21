@@ -33,6 +33,6 @@ export const Rounded = () => (
     <Body classes="mb-5 mt-2" type="regular">
       Høringssvarene vil blive behandlet
     </Body>
-    <Body classes="text-blue-center">Hvis du ønsker at klage over afgørelsen, kan det ske til klage@ballerup.dk</Body>
+    <Body classes="text-blue-center">Hvis du ønsker at klage over afgørelsen, kan det ske til klage@novataris.dk</Body>
   </CardAtom>
 );

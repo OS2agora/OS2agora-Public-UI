@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import clsx from "clsx";
 import { Form, Formik } from "formik";
 import { Button } from "../atoms/Button";
@@ -16,7 +16,8 @@ type FilterTextsProps = {
   title: string;
   radioButtonLabel: string;
   filterCloseButtonLabel: string;
-  checkboxLabel: string;
+  subjectAreaLabel: string;
+  cityAreaLabel: string;
   submitText: string;
 };
 
@@ -31,10 +32,12 @@ type FilterProps = {
   open: boolean;
   texts: FilterTextsProps;
   radioButtonOptions: InputProps[];
-  checkboxOptions: InputProps[];
+  subjectAreaOptions: InputProps[];
+  cityAreaOptions: InputProps[];
   onCloseFilter(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void;
   initialRadioButtonOption?: string;
-  initialCheckboxOptions?: string | string[] | undefined;
+  initialSubjectAreas?: string | string[] | undefined;
+  initialCityAreas?: string | string[] | undefined;
 };
 
 const styling = {
@@ -45,7 +48,7 @@ const styling = {
   radio: "bg-white py-2 px-8 flex",
   radioContainer: "flex flex-col space-y-2 mb-10",
   checkboxLabel: "pb-4 px-8",
-  navigationContainer: "mt-10",
+  navigationContainer: "mt-10 mb-20",
   checkbox: "px-8",
   button: "pl-6 pt-6",
 };
@@ -55,10 +58,12 @@ const Filter = ({
   onSubmit,
   texts,
   radioButtonOptions,
-  checkboxOptions,
+  subjectAreaOptions,
+  cityAreaOptions,
   open,
   initialRadioButtonOption = "",
-  initialCheckboxOptions = [],
+  initialSubjectAreas = [],
+  initialCityAreas = [],
   onCloseFilter,
   ...rest
 }: FilterProps) => {
@@ -66,7 +71,7 @@ const Filter = ({
 
   return (
     <Slider classes={className} open={open} {...rest}>
-      <div className={styling.button}>
+      <div className={styling.button} role="button">
         <TimesIcon icon={<TimesIcon aria-label={texts.filterCloseButtonLabel} />} onClick={onCloseFilter} />
       </div>
       <div className={styling.card}>
@@ -76,7 +81,8 @@ const Filter = ({
       <Formik
         initialValues={{
           hearingType: initialRadioButtonOption,
-          subjectAreas: initialCheckboxOptions,
+          subjectAreas: initialSubjectAreas,
+          cityAreas: initialCityAreas,
         }}
         onSubmit={onSubmit}
       >
@@ -95,13 +101,25 @@ const Filter = ({
                   </div>
                 ))}
               </div>
-              {checkboxOptions.length > 0 ? (
+              {subjectAreaOptions.length > 0 ? (
                 <div>
                   <FormLabel classes={styling.checkboxLabel} isFixedSize={true}>
-                    {texts.checkboxLabel}
+                    {texts.subjectAreaLabel}
                   </FormLabel>
-                  {checkboxOptions.map((option, index) => (
+                  {subjectAreaOptions.map((option, index) => (
                     <Checkbox classes={styling.checkbox} name="subjectAreas" value={option.value} key={index}>
+                      {option.text}
+                    </Checkbox>
+                  ))}
+                </div>
+              ) : null}
+              {cityAreaOptions.length > 0 ? (
+                <div>
+                  <FormLabel classes={styling.checkboxLabel} isFixedSize={true}>
+                    {texts.cityAreaLabel}
+                  </FormLabel>
+                  {cityAreaOptions.map((option, index) => (
+                    <Checkbox classes={styling.checkbox} name="cityAreas" value={option.value} key={index}>
                       {option.text}
                     </Checkbox>
                   ))}
@@ -109,7 +127,7 @@ const Filter = ({
               ) : null}
             </FormControl>
             <NavigationBar fixed={false} classes={styling.navigationContainer}>
-              <Button type="submit" classes="flex-grow">
+              <Button type="submit" classes="grow">
                 {texts.submitText}
               </Button>
             </NavigationBar>

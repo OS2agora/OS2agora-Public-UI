@@ -1,0 +1,9 @@
+name: agora
+services:
+  fe_public:
+    build:
+        context: ../
+        dockerfile: docker/image/app/Dockerfile
+  fe_public_nginx:
+    build:
+      context: ./image/nginx

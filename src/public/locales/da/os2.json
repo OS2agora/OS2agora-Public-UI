@@ -1,0 +1,17 @@
+{
+    "header": {
+        "logoAltText": "OS2agora Logo",
+        "preTitle": "OS2agora - "
+    },
+    "footer": {
+        "logoAltText": "OS2agora Logo",
+        "municipalityHeader1": "OS2agora",
+        "street": "Nyhavn 43",
+        "city": "1051 København K",
+        "phone": "Tlf.: 7027 8000",
+        "cvr": "CVR-nr.: 36066431",
+        "externalLinkMunicipalityText": "www.novataris.com",
+        "externalLinkMunicipalityLink": "https://novataris.com/",
+        "externalLinkContactLink": "https://www.novataris.com/dk/?kontakt-os"
+    }
+}

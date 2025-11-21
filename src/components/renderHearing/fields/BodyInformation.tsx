@@ -24,6 +24,7 @@ const BodyInformation = ({ fieldData }: BodyInformationProps) => {
           source={fieldData.textContent!}
           // className markdown is used in custom.css
           className="markdown mt-2 tablet:mt-4"
+          linkTarget="_blank"
         />
       </div>
       {fieldData.fileContent.length > 0 ? (

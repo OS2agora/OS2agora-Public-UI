@@ -1,7 +1,123 @@
-@import "fonts.css";
+@import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer base {
+  @import './fonts.css';
+  @import './custom.css';
+}
 
-@import "custom.css";
+@theme {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-blue-grey: #85a5d6;
+  --color-blue-dark: #1d3557;
+  --color-blue-center: #1556ea;
+  --color-blue-center-click: #003ecb;
+  --color-blue-my-hearings: #0068b8;
+  --color-blue-archived-hearings: #0593e1;
+
+  --color-grey-text-field: #fbfdff;
+  --color-grey-light: #f7f9fc;
+  --color-grey: #bdc4cc;
+  --color-grey-dark: #566779;
+
+  --color-green-highlight: #beebeb;
+  --color-green-current-hearing: #20b6b5;
+  --color-green-dark: #188a8a;
+
+  --color-black: #05090f;
+  --color-white: #ffffff;
+  --color-red: #ff5c4c;
+
+  --breakpoint-*: initial;
+  --breakpoint-tablet: 834px;
+  --breakpoint-desktop: 1440px;
+
+  --font-sans:
+    Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --leading-2: 0.875rem;
+  --leading-11: 2.75rem;
+  --leading-12: 3rem;
+
+  --text-xxs: 0.625rem;
+
+  --shadow: 0px 4px 4px -2px rgba(5, 9, 15, 0.1);
+
+  --margin-tablet-negative-container: -1.6875rem;
+  --margin-desktop-negative-container: -6.375rem;
+  --margin-mobile-buttons-to-footer: 1.625rem;
+
+  --height-13: 3.25rem;
+  --height-18: 4.5rem;
+  --height-23: 5.625rem;
+  --height-26: 6.5rem;
+  --height-30: 7.5rem;
+  --height-hearing-card-text: 9.1875rem;
+
+  --width-13: 3.25rem;
+  --width-18: 4.5rem;
+  --width-user-circle-tablet: 5.875rem;
+  --width-tablet-global-message: 36.25rem;
+  --width-desktop-global-message: 36.875rem;
+  --width-tablet-hearing-card: 23.75rem;
+  --width-desktop-hearing-card: 24.75rem;
+
+  --max-width-tablet-hearing-content: 36.25rem;
+  --max-width-desktop-hearing-content: 51rem;
+
+  --inset-25: 6.375rem;
+  --inset-6_5: 1.6875rem;
+
+  --animate-slide-up: slideUp 0.5s ease-out;
+
+  @keyframes slideUp {
+    0% {
+      transform: translateY(100%);
+      opacity: 0.5;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+@utility container {
+  padding-inline: 1.25rem;
+  @media (width >= theme(--breakpoint-tablet)) {
+    padding-inline: 1.6875rem;
+  }
+  @media (width >= theme(--breakpoint-desktop)) {
+    padding-inline: 6.375rem;
+  }
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@layer base {
+  button:not(:disabled),  
+  [role="button"]:not(:disabled) {    
+    cursor: pointer;  
+  }
+}
+
+

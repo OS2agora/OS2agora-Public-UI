@@ -26,6 +26,8 @@
     "noEmit": true,
     "isolatedModules": true
     // "baseUrl": "src"
+    ,
+    "incremental": true
   },
   "include": [
     "next-env.d.ts",

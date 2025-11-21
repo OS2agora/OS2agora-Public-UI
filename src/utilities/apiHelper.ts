@@ -1,7 +1,6 @@
 import { AxiosError } from "axios";
 import { AnswerHearingForm } from "../components/pages/AnswerHearing";
 import {
-  COMMENTS_RELATIONSHIP,
   HEARING,
   SUBJECTAREA,
   CONTENTTYPE_TEXT,
@@ -18,7 +17,6 @@ import {
   FIELDTYPE_RELATIONSHIP,
   USER_RELATIONSHIP,
   GLOBALCONTENT,
-  GLOBALCONTENTTYPE_TERMS_AND_CONDITIONS,
   COMMENTTYPE_HEARING_RESPONSE,
   FILEOPERATION_ADD,
   COMMENTSTATUS_AWAITING_APPROVAL,
@@ -39,17 +37,31 @@ import {
   ERRORCODE_UNKNOWN,
   ERRORCODE_VALIDATION,
   COMMENTTYPE_RELATIONSHIP,
-} from "./constants";
+  IDENTIFIER,
+  NAME,
+  USER_CAPACITY_RELATIONSHIP,
+  CAPACITY,
+  USER_CAPACITY_EMPLOYEE,
+  USER_CAPACITY_COMPANY,
+  COMPANY_RELATIONSHIP,
+  POSTAL_CODE,
+  CITY,
+  USER_CAPACITY_CITIZEN,
+  CITYAREA,
+  STREET_NAME,
+} from "./constants/api";
 import { formatDate } from "./dateHelper";
 import { convertDataUrlToFile } from "./fileHelper";
-import env from "@beam-australia/react-env";
+import { ENV_VARIABLE } from "./constants/environmentVariables";
+import { readEnvironmentVariable } from "./environmentHelper";
 
 export const urlJoin = (base: string, relative: string) => {
   const baseUrl = new URL(base);
   return `${baseUrl.href}/${relative}`;
 };
 
-export const getApiBaseUrl = () => (typeof window !== "undefined" ? env("API_URL") : process.env.SERVER_ONLY_API_URL);
+export const getApiBaseUrl = () =>
+  typeof window !== "undefined" ? readEnvironmentVariable(ENV_VARIABLE.API_URL) : process.env.SERVER_ONLY_API_URL;
 
 type HearingOverview = {
   id: string;
@@ -71,6 +83,7 @@ type HearingOverview = {
   imageAlt: string | undefined;
   hearingStatus: number;
   subjectArea: string;
+  cityArea: string | undefined;
   deadline: Date;
 };
 
@@ -83,6 +96,7 @@ type HearingDetails = {
   statusText: string;
   caseNumber: string;
   subjectArea: string;
+  cityArea: string;
   departmentName: string;
   contactPersonEmail: string;
   contactPersonName: string;
@@ -110,12 +124,22 @@ type HearingField = {
   hearingId: string;
 };
 
+type ResponderInfo = {
+  isCommentOwner: boolean;
+  isEmployee: boolean;
+  isCompany: boolean;
+  postalCode?: string;
+  city?: string;
+  companyName?: string;
+  streetName?: string;
+};
+
 type HearingComment = {
   commentId: string;
   comment?: string;
   commentNumber: number;
   date: string;
-  isCommentOwner: boolean;
+  responderInfo: ResponderInfo;
   onBehalfOf: string;
   documents: {
     fileName: string;
@@ -158,6 +182,11 @@ type GlobalContentModel = {
   text: string;
 };
 
+type CheckboxInput = {
+  value: string;
+  text: string;
+};
+
 interface EntityReferenceWrap {
   data: EntityReference | EntityReference[];
 }
@@ -191,13 +220,21 @@ function isHearingArchived(hearingStatus: number): boolean {
   return hearingStatus === HEARINGSTATUS_CONCLUDED || hearingStatus === HEARINGSTATUS_AWAITING_CONCLUSION;
 }
 
+function filterArchivedHearings(hearing: HearingOverview, entitySet: EntitySet): boolean {
+  return isHearingArchived(hearing.hearingStatus);
+}
+
+function filterActiveHearings(hearing: HearingOverview, entitySet: EntitySet): boolean {
+  return isHearingActive(hearing.hearingStatus);
+}
+
 function canCommentOnHearing(hearingStatus: number): boolean {
   return hearingStatus === HEARINGSTATUS_ACTIVE;
 }
 
 function getDownloadUrl(url: string): string {
   let localUrl = url;
-  const xApiHeader = env("X_API_HEADER");
+  const xApiHeader = readEnvironmentVariable(ENV_VARIABLE.X_API_HEADER);
   if (typeof xApiHeader !== "undefined") {
     localUrl += `?apiKey=${xApiHeader}`;
   }
@@ -506,6 +543,16 @@ function buildHearingOverviewModel(
 
   const subjectArea = subjectAreaEntity.getAttribute("name") as string;
 
+  const cityAreaReference = entity.getRelationships(CITYAREA) as EntityReference;
+
+  let cityArea = undefined as string | undefined;
+  if (cityAreaReference !== null) {
+    const cityAreaEntity = entitySet.getEntityByReference(cityAreaReference);
+    if (cityAreaEntity !== null) {
+      cityArea = cityAreaEntity.getAttribute("name") as string;
+    }
+  }
+
   const deadlineAsDate = new Date(deadline);
   const numberOfComments = entity.getAttribute("commentAmount")?.toString() ?? "0";
   const deadlineMonth = deadlineAsDate.toLocaleString("default", {
@@ -519,7 +566,7 @@ function buildHearingOverviewModel(
   const hearingTitle = hearingTitleField?.textContent;
 
   const hearingImageField = hearingFields.find((x) => x.fieldType === FIELDTYPE_IMAGE);
-  const hearingImage = hearingImageField?.fileContent[0].urlToDownload;
+  const hearingImage = hearingImageField?.fileContent[0]?.urlToDownload;
   const hearingImageAlt = hearingImageField?.textContent;
 
   const hearingSummaryField = hearingFields.find((x) => x.fieldType === FIELDTYPE_SUMMARY);
@@ -545,6 +592,7 @@ function buildHearingOverviewModel(
     imageAlt: hearingImageAlt,
     hearingStatus,
     subjectArea,
+    cityArea,
     deadline: deadlineAsDate,
   };
 }
@@ -574,6 +622,10 @@ function buildHearingModel(
   const subjectAreaEntity = subjectAreaReference && entitySet.getEntityByReference(subjectAreaReference);
   const subjectArea = (subjectAreaEntity?.getAttribute("name") as string) || "";
 
+  const cityAreaReference = entity.getRelationships(CITYAREA) as EntityReference | null;
+  const cityAreaEntity = cityAreaReference && entitySet.getEntityByReference(cityAreaReference);
+  const cityArea = (cityAreaEntity?.getAttribute("name") as string) || "";
+
   const deadlineText = formatDate(deadline);
   const startDateText = formatDate(startDate);
 
@@ -581,7 +633,7 @@ function buildHearingModel(
   const hearingTitle = hearingTitleField?.textContent;
 
   const hearingImageField = hearingFields.find((x) => x.fieldType === FIELDTYPE_IMAGE);
-  const hearingImage = hearingImageField?.fileContent[0].urlToDownload;
+  const hearingImage = hearingImageField?.fileContent[0]?.urlToDownload;
   const hearingImageAlt = hearingImageField?.textContent;
 
   const hearingSummaryField = hearingFields.find((x) => x.fieldType === FIELDTYPE_SUMMARY);
@@ -595,6 +647,7 @@ function buildHearingModel(
     statusText: hearingStatusToText[hearingStatus],
     caseNumber: esdhTitle,
     subjectArea,
+    cityArea,
     departmentName,
     contactPersonEmail,
     contactPersonName,
@@ -608,6 +661,60 @@ function buildHearingModel(
   };
 }
 
+function getResponderInfo(
+  hearingResponse: Entity,
+  entitySet: EntitySet,
+  identifier: string | undefined
+): ResponderInfo {
+  const userReference = hearingResponse.getRelationships(USER_RELATIONSHIP) as EntityReference;
+  const userEntity = entitySet.getEntityByReference(userReference);
+  const isCommentOwner = userEntity?.getAttribute(IDENTIFIER) === identifier;
+
+  const userCapacityReference = userEntity?.getRelationships(USER_CAPACITY_RELATIONSHIP) as EntityReference;
+  const userCapacityEntity = entitySet.getEntityByReference(userCapacityReference);
+  const userCapacity = userCapacityEntity?.getAttribute(CAPACITY);
+
+  const isCompany = userCapacity === USER_CAPACITY_COMPANY;
+  const isEmployee = userCapacity === USER_CAPACITY_EMPLOYEE;
+
+  if (isCompany) {
+    const companyReference = userEntity?.getRelationships(COMPANY_RELATIONSHIP) as EntityReference;
+    const companyEntity = entitySet.getEntityByReference(companyReference);
+    const companyName = companyEntity?.getAttribute(NAME) as string;
+    const postalCode = companyEntity?.getAttribute(POSTAL_CODE) as string;
+    const city = companyEntity?.getAttribute(CITY) as string;
+    const streetName = companyEntity?.getAttribute(STREET_NAME) as string;
+
+    return {
+      isCommentOwner,
+      isEmployee,
+      isCompany,
+      companyName,
+      postalCode,
+      city,
+      streetName,
+    };
+  } else if (userCapacity === USER_CAPACITY_CITIZEN) {
+    const postalCode = userEntity?.getAttribute(POSTAL_CODE) as string;
+    const city = userEntity?.getAttribute(CITY) as string;
+    const streetName = userEntity?.getAttribute(STREET_NAME) as string;
+    return {
+      isCommentOwner,
+      isEmployee,
+      isCompany,
+      postalCode,
+      city,
+      streetName,
+    };
+  }
+
+  return {
+    isCommentOwner,
+    isEmployee,
+    isCompany,
+  };
+}
+
 function buildCommentsModel(identifier: string | undefined, entitySet: EntitySet): HearingComment[] {
   const comments = entitySet.getAllOfType(COMMENT);
   const allContent = entitySet.getAllOfType(CONTENT);
@@ -617,9 +724,7 @@ function buildCommentsModel(identifier: string | undefined, entitySet: EntitySet
   const result: HearingComment[] = [];
 
   hearingResponses.forEach((hearingResponse) => {
-    const userReference = hearingResponse.getRelationships(USER_RELATIONSHIP) as EntityReference;
-    const userEntity = entitySet.getEntityByReference(userReference);
-    const isCommentOwner = userEntity.getAttribute("identifier") === identifier;
+    const responderInfo = getResponderInfo(hearingResponse, entitySet, identifier);
 
     const contentReferencesOnComment = hearingResponse.getRelationships(CONTENT_RELATIONSHIP) as EntityReference[];
 
@@ -659,7 +764,7 @@ function buildCommentsModel(identifier: string | undefined, entitySet: EntitySet
           commentId,
           commentNumber,
           date: formatDate(createdDate),
-          isCommentOwner,
+          responderInfo,
           onBehalfOf,
           documents:
             contentType === CONTENTTYPE_FILE
@@ -834,7 +939,79 @@ function buildGlobalContentModel(entitySet: EntitySet): GlobalContentModel {
   }
 }
 
-function doesUserHaveRoleOnHearing(hearingId: string, entitySet: EntitySet, userIdentifier?: string): boolean {
+function doesUserHaveRoleOnHearing(
+  hearingId: string,
+  role: number,
+  entitySet: EntitySet,
+  userIdentifier?: string
+): boolean {
+  if (typeof userIdentifier === "undefined") {
+    return false;
+  }
+
+  const hearing = entitySet.getEntity(hearingId, HEARING);
+
+  if (!hearing) {
+    return false;
+  }
+
+  const userHearingRoleRelationships = hearing.getRelationships("userHearingRoles") as EntityReference[] | undefined;
+
+  if (typeof userHearingRoleRelationships === "undefined") {
+    return false;
+  }
+
+  const includedUserhearingRoles = entitySet.getAllOfType("userHearingRole");
+
+  return userHearingRoleRelationships.some((uhr) => {
+    const userHearingRole = includedUserhearingRoles.find((singleUhr) => uhr.id === singleUhr.id);
+
+    if (typeof userHearingRole === "undefined") {
+      return false;
+    }
+
+    // Check that hearingRole matches
+    const hearingRoleReference = userHearingRole?.getRelationships("hearingRole") as EntityReference | undefined;
+
+    if (typeof hearingRoleReference === "undefined") {
+      return false;
+    }
+
+    const hearingRoleEntity = entitySet.getEntityByReference(hearingRoleReference);
+
+    if (!hearingRoleEntity) {
+      return false;
+    }
+
+    if (hearingRoleEntity.getAttribute("role") !== role) {
+      return false;
+    }
+
+    // Check that user matches
+    const userReference = userHearingRole?.getRelationships("user") as EntityReference | undefined;
+
+    if (typeof userReference === "undefined") {
+      return false;
+    }
+
+    const userEntity = entitySet.getEntityByReference(userReference);
+
+    if (!userEntity) {
+      return false;
+    }
+
+    const userEntityIdentifier = userEntity.getAttribute(IDENTIFIER) as string;
+
+    if (userEntityIdentifier !== userIdentifier) {
+      return false;
+    }
+
+    // All checks passed - the current user has the role on the hearing.
+    return true;
+  });
+}
+
+function doesUserHaveAnyRoleOnHearing(hearingId: string, entitySet: EntitySet, userIdentifier?: string): boolean {
   if (typeof userIdentifier === "undefined") {
     return false;
   }
@@ -862,16 +1039,35 @@ function doesUserHaveRoleOnHearing(hearingId: string, entitySet: EntitySet, user
     }
 
     const userEntity = entitySet.getEntityByReference(userReference);
-    const userEntityIdentifier = userEntity.getAttribute("identifier") as string;
+    const userEntityIdentifier = userEntity.getAttribute(IDENTIFIER) as string;
     return userEntityIdentifier === userIdentifier;
   });
+}
+
+function mapDataToCheckboxInput(data, entityName) {
+  const localData: CheckboxInput[] = [];
+  const entitySet = new EntitySet(data.data);
+
+  data.data.data.forEach((item) => {
+    const entity = entitySet.getEntity(item.id, entityName);
+    const name = (entity?.getAttribute("name") as string) || "";
+
+    if (name.length !== 0) {
+      localData.push({
+        value: name,
+        text: name,
+      });
+    }
+  });
+
+  return localData;
 }
 
 export {
   EntitySet,
   createHearingStatusToTextMap,
-  isHearingActive,
-  isHearingArchived,
+  filterActiveHearings,
+  filterArchivedHearings,
   canCommentOnHearing,
   buildCreateCommentDto,
   parseApiErrors,
@@ -882,6 +1078,8 @@ export {
   buildUpdateCommentDto,
   buildGlobalContentTypesModel,
   buildGlobalContentModel,
+  doesUserHaveAnyRoleOnHearing,
+  mapDataToCheckboxInput,
   doesUserHaveRoleOnHearing,
 };
 export type {
@@ -896,4 +1094,6 @@ export type {
   GlobalContentModel,
   EntityReference,
   Entity,
+  CheckboxInput,
+  ResponderInfo,
 };

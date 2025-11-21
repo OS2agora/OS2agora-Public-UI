@@ -1,21 +1,29 @@
-import * as React from "react";
-
 import { GetStaticPathsContext, GetStaticPropsContext } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { QueryClient } from "react-query";
 import { dehydrate } from "react-query/hydration";
 
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 import { useTranslation } from "../../hooks/useTranslation";
 import { RenderHearing } from "../../components/renderHearing/RenderHearing";
 import { callApi } from "../../utilities/apiClient";
 import { fetchHearing } from "../../hooks/api/useHearing";
-import { useGetHearing } from "../../hooks/pages/useGethearing";
+import { useGetHearing } from "../../hooks/pages/useGetHearing";
 import { GlobalLoading } from "../../components/atoms/GlobalLoading";
 import { NoAccess } from "../../components/renderHearing/NoAccess";
 import { useGetComments } from "../../hooks/pages/useGetComments";
 import { fetchHearingTemplates } from "../../hooks/api/useHearingTemplates";
 import { fetchSubjectAreas } from "../../hooks/api/useSubjectAreas";
+import { HEARING_PAGE } from "../../utilities/constants/pages";
+import React from "react";
+import { useAppConfigContext } from "../../hooks/useAppConfig";
+import { fetchCityAreas } from "../../hooks/api/useCityAreas";
+import { readEnvironmentVariable } from "../../utilities/environmentHelper";
+import { useValidateResponseLimit } from "../../hooks/pages/useValidateResponseLimit";
+import { HEARING_COMMENTS_ROUTE, HEARING_ANSWER_ROUTE, ACCESS_DENIED_ROUTE } from "../../utilities/constants/routes";
+import { ENV_VARIABLE } from "../../utilities/constants/environmentVariables";
 
 // Routes to '/hearing/{hearingId}'
 export default function Hearing() {
@@ -23,8 +31,13 @@ export default function Hearing() {
   const { translate, translateWithReplace } = useTranslation();
   const hearingId = router.query.hearingId as string;
 
-  const { hearing, isFetching: isFetchingHearing, shouldRedirect, noAccess } = useGetHearing(hearingId);
-  const { comments: commentsData, isFetching: isFecthingComments } = useGetComments(!noAccess, hearingId);
+  const appContext = useAppConfigContext();
+  const { pagination, doLogin, setLoginSettings } = appContext;
+
+  const { hearing, isFetching: isFetchingHearing, shouldRedirect, noAccess, isHearingOwner } = useGetHearing(hearingId);
+  const { comments: commentsData, isFetching: isFecthingComments } = useGetComments(!noAccess, hearingId, null);
+
+  const { responseLimitHit } = useValidateResponseLimit(!noAccess, isHearingOwner, hearingId);
 
   if (isFetchingHearing || isFecthingComments) {
     return <GlobalLoading />;
@@ -32,13 +45,13 @@ export default function Hearing() {
 
   if (shouldRedirect) {
     router.replace({
-      pathname: "/accessdenied",
+      pathname: ACCESS_DENIED_ROUTE,
       query: { redirectUri: window.location.href },
     });
   }
 
   if (noAccess) {
-    return <NoAccess title={translate("hearing", "noAccessTitle")} text={translate("hearing", "noAccessText")} />;
+    return <NoAccess title={translate(HEARING_PAGE, "noAccessTitle")} text={translate(HEARING_PAGE, "noAccessText")} />;
   }
 
   if (typeof hearing === "undefined") {
@@ -47,43 +60,48 @@ export default function Hearing() {
 
   function routeToCommentPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
+
     router.push({
-      pathname: "/hearing/[hearingId]/comments",
-      query: { hearingId },
+      pathname: HEARING_COMMENTS_ROUTE,
+      query: pagination.comments.enabled ? { hearingId, Page: 1 } : { hearingId },
     });
   }
 
-  function routeToAnswerPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, doLogin = false) {
+  const openLoginModal = () =>
+    setLoginSettings({
+      showLoginModal: true,
+      redirectUri: `${window.location.origin}${router.asPath}/answer`,
+    });
+
+  function routeToAnswerPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, doLoginFlow = false) {
     event.preventDefault();
-    const query: { hearingId: string; doLogin?: boolean } = { hearingId };
-    if (doLogin) {
-      query.doLogin = doLogin;
-    }
-    router.push({
-      pathname: "/hearing/[hearingId]/answer",
-      query,
-    });
-  }
 
-  function routeToLoginAndThenAnswerPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    return routeToAnswerPage(event, true);
+    if (doLoginFlow) {
+      openLoginModal();
+    } else {
+      const query: { hearingId: string } = { hearingId };
+      router.push({
+        pathname: HEARING_ANSWER_ROUTE,
+        query,
+      });
+    }
   }
 
   return (
     <div className="flex-1">
       <Head>
-        <title>{translateWithReplace("hearing", "metaTitle", "##hearing##", hearing.title!)}</title>
+        <title>{translateWithReplace(HEARING_PAGE, "metaTitle", "##hearing##", hearing.title!)}</title>
         <meta
           name="Description"
-          content={translateWithReplace("hearing", "metaDescription", "##hearing##", hearing.title!)}
+          content={translateWithReplace(HEARING_PAGE, "metaDescription", "##hearing##", hearing.title!)}
         ></meta>
       </Head>
       <RenderHearing
         hearing={hearing}
         comments={commentsData}
+        showResponseLimitWarning={responseLimitHit}
         routeToAnswerPage={routeToAnswerPage}
         routeToCommentPage={routeToCommentPage}
-        routeToLoginAndThenAnswerPage={routeToLoginAndThenAnswerPage}
       />
     </div>
   );
@@ -103,15 +121,25 @@ export async function getStaticProps(context: GetStaticPropsContext) {
   const hearingId = context.params?.hearingId as string | undefined;
 
   if (hearingId === undefined) {
-    return;
+    return {
+      props: {
+        ...(await serverSideTranslations(context.locale!)),
+      },
+    };
   }
 
-  await queryClient.prefetchQuery(["hearing", hearingId], () => callApi(fetchHearing(hearingId), true));
-  await queryClient.prefetchQuery(["hearingTemplates"], () => callApi(fetchHearingTemplates(), true));
-  await queryClient.prefetchQuery(["subjectAreas"], () => callApi(fetchSubjectAreas(), true));
+  const preftechTimeout = parseInt(readEnvironmentVariable(ENV_VARIABLE.PREFETCH_TIMEOUT) || "-1");
+
+  await queryClient.prefetchQuery(["hearing", hearingId], () =>
+    callApi(fetchHearing(hearingId), true, preftechTimeout)
+  );
+  await queryClient.prefetchQuery(["hearingTemplates"], () => callApi(fetchHearingTemplates(), true, preftechTimeout));
+  await queryClient.prefetchQuery(["subjectAreas"], () => callApi(fetchSubjectAreas(), true, preftechTimeout));
+  await queryClient.prefetchQuery(["cityAreas"], () => callApi(fetchCityAreas(), true, preftechTimeout));
 
   return {
     props: {
+      ...(await serverSideTranslations(context.locale!)),
       dehydratedState: dehydrate(queryClient),
     },
     revalidate: 300, // In seconds - Every 5 minute

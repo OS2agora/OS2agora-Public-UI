@@ -1,5 +1,5 @@
-import * as React from "react";
-import Image from "next/image";
+import React from "react";
+
 import NextLink from "next/link";
 import clsx from "clsx";
 
@@ -12,10 +12,11 @@ import { getInitialsFromMe } from "../../utilities/stringHelper";
 import { Card } from "../atoms/Card";
 import { Body } from "../atoms/Body";
 import { Divider } from "../atoms/Divider";
+import { ImageRenderer } from "../atoms/ImageRenderer";
 import { UserInfo } from "./UserInfo";
 
 type ImageProps = {
-  src: string;
+  src: string | undefined;
   alt: string;
 };
 
@@ -31,20 +32,20 @@ type HeaderProps = {
 };
 
 const styling = {
-  root: "bg-white w-full shadow z-20",
+  root: "bg-white w-full shadow z-5",
   container: "flex justify-between items-center h-16 tablet:h-20 desktop:h-24 relative",
   userContainer: "",
   text: "text-grey-dark",
-  image: "cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
-  loginText:
-    "text-blue-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+  link: "cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
+  image: "object-contain h-10 tablet:h-14 desktop:h-18 relative",
+  loginText: "text-blue-center cursor-pointer focus:outline-hidden focus:border-transparent hover:text-blue-grey",
   dropdown:
     "bg-white p-4 pr-8 rounded-b absolute top-16 tablet:top-20 desktop:top-24 right-5 tablet:right-6.5 desktop:right-25 min-w-max",
   dropdownText: "mb-2 mt-2 block",
   dropdownLink:
-    "cursor-pointer text-blue-center mt-2 block focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+    "cursor-pointer text-blue-center mt-2 mb-2 block focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
   myHearingsLinks:
-    "cursor-pointer text-blue-center mt-2 focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+    "cursor-pointer text-blue-center mt-2 focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
 };
 
 const Header = ({
@@ -59,6 +60,7 @@ const Header = ({
   ...rest
 }: HeaderProps) => {
   const appConfig = useAppConfigContext();
+  const { setLoginSettings, loading } = appConfig;
   const smallDevice = useMediumDeviceDown();
   const largeDevice = useLargeDeviceUp();
   const className = clsx(styling.root, classes);
@@ -74,25 +76,21 @@ const Header = ({
     initials = getInitialsFromMe(appConfig.auth.me)!;
   }
 
-  function login() {
-    const containsRedirectUri = window.location.href.includes("redirectUri");
-
-    if (containsRedirectUri) {
-      const searchParams = new URL(window.location.href).searchParams;
-      const redirectUri = searchParams.get("redirectUri");
-      appConfig?.doLogin(redirectUri);
-    } else {
-      appConfig?.doLogin(window.location.href);
-    }
-  }
+  const openLoginModal = () => (!loading ? setLoginSettings((prev) => ({ ...prev, showLoginModal: true })) : null);
 
   return (
     <div className={className} role="navigation">
       <Container classes={styling.container} {...rest}>
-        <NextLink href="/">
-          <a href="/" className={styling.image}>
-            <Image src={image.src} alt={image.alt} height={imageHeight} width={imageWidth} />
-          </a>
+        <NextLink href="/" className={styling.link}>
+          {image.src && (
+            <ImageRenderer
+              src={image.src}
+              alt={image.alt}
+              height={imageHeight}
+              width={imageWidth}
+              classes={styling.image}
+            />
+          )}
         </NextLink>
         <SubHeader type="heavy" component="span" classes={styling.text}>
           {!smallDevice ? <SubHeader component="span">{preTitle}</SubHeader> : null}
@@ -107,10 +105,8 @@ const Header = ({
                   <UserInfo me={appConfig?.auth.me} loggedInOnBehalfOfText={loggedOnBehalfOfText} />
                   <Divider />
                   <Body type="heavy" component="span" classes={styling.dropdownText}>
-                    <NextLink href="/myHearings">
-                      <a href="/myHearings" className={styling.myHearingsLinks}>
-                        {myHearingsText}
-                      </a>
+                    <NextLink href="/myHearings" className={styling.myHearingsLinks}>
+                      {myHearingsText}
                     </NextLink>
                   </Body>
                   <Divider />
@@ -130,11 +126,7 @@ const Header = ({
             </>
           )}
           {!shouldShowUserCircle && (
-            <button
-              onClick={login}
-              onKeyDown={(event) => (event.key === "Enter" ? appConfig?.doLogin(window.location.href) : undefined)}
-              className={styling.loginText}
-            >
+            <button onClick={openLoginModal} className={styling.loginText}>
               <SubHeader type="heavy" component="span">
                 {loginText}
               </SubHeader>

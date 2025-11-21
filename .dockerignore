@@ -7,3 +7,4 @@ src/.next/
 src/node_modules/
 src/README.md
 src/.env.example
+src/.env.local

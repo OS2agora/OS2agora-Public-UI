@@ -6,9 +6,9 @@ const useGetGlobalContentTypeId = (globalContentTypes: GlobalContentTypeModel[],
 
   React.useEffect(() => {
     if (globalContentTypes.length > 0) {
-      const termsAndConditons = globalContentTypes.find((x) => x.globalContentType === type);
-      if (typeof termsAndConditons !== "undefined") {
-        setId(termsAndConditons.id);
+      const globalContent = globalContentTypes.find((x) => x.globalContentType === type);
+      if (typeof globalContent !== "undefined") {
+        setId(globalContent.id);
       }
     }
   }, [globalContentTypes, type]);

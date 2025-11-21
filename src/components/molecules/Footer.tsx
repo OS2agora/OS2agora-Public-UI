@@ -1,5 +1,6 @@
 import NextLink from "next/link";
 import clsx from "clsx";
+import React from "react";
 
 import { useLargeDeviceUp, useMediumDeviceDown } from "../../hooks/mediaQueryHooks";
 import { Body } from "../atoms/Body";
@@ -42,13 +43,11 @@ const InternalLinkSection = ({ classes, links }: LinkSectionProps) => {
       {links.map((link, index) => {
         return (
           <Component classes={index === 0 ? textSpace : ""} type="regular" key={index}>
-            <NextLink href={link.href}>
-              <a
-                href={link.href}
-                className="focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent"
-              >
-                {link.text}
-              </a>
+            <NextLink
+              href={link.href}
+              className="focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent"
+            >
+              {link.text}
             </NextLink>
           </Component>
         );
@@ -98,7 +97,7 @@ const InformationSection = ({ classes, textLines }: InformationSectionProps) => 
 };
 
 type ImageProps = ClassesProps & {
-  src: string;
+  src: string | undefined;
   alt: string;
 };
 
@@ -109,13 +108,11 @@ const Image = ({ classes, src, alt }: ImageProps) => {
   const imageWidth = smallDevice ? 58 : 85;
 
   return (
-    <NextLink href="/">
-      <a
-        href="/"
-        className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent"
-      >
-        <ImageRenderer src={src} alt={alt} className={classes} width={imageWidth} height={imageHeight} />
-      </a>
+    <NextLink
+      href="/"
+      className="cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent"
+    >
+      {src && <ImageRenderer src={src} alt={alt} className={classes} width={imageWidth} height={imageHeight} />}
     </NextLink>
   );
 };
@@ -132,7 +129,7 @@ const smallDeviceStyling = {
   root: "w-full bg-blue-dark text-white",
   container: "py-6",
   internalLinksSection:
-    "pl-4 pb-4 focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+    "pl-4 pb-4 focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
   divider: "text-grey-dark",
   linkLogoContainer: "pl-4 pt-4 flex justify-between relative",
   infoContainer: "pt-4",
@@ -141,8 +138,9 @@ const smallDeviceStyling = {
 
 const mediumDeviceStyling = {
   container: "py-10 flex",
-  internalLinksSection: "pb-3 focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
-  linkLogoContainer: "flex justify-between flex-grow",
+  internalLinksSection:
+    "pb-3 focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
+  linkLogoContainer: "flex justify-between grow",
   infoContainer: "pr-24",
   imageContainer: "flex",
 };
@@ -150,7 +148,7 @@ const mediumDeviceStyling = {
 const largeDeviceStyling = {
   container: "py-10 flex",
   linkContainer: "flex",
-  linkLogoContainer: "flex justify-between flex-grow",
+  linkLogoContainer: "flex justify-between grow",
   infoContainer: "pr-24",
   externalLinkContainer: "pr-24",
   imageContainer: "flex",
@@ -174,7 +172,7 @@ const Footer = ({ classes, externalLinks, internalLinks, textLines, image, ...re
                 <InformationSection classes={smallDeviceStyling.infoContainer} textLines={textLines} />
               </div>
               <div>
-                <Image classes={smallDeviceStyling.image} src={image.src} alt={image.alt} />
+                <Image classes={smallDeviceStyling.image} src={image?.src} alt={image.alt} />
               </div>
             </div>
           </div>

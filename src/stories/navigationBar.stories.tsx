@@ -21,8 +21,8 @@ export const NavigationBar = () => (
 export const MultipleButtons = () => (
   <div className="h-screen bg-grey-light">
     <NavigationBarAtom fixed={knobFixed()}>
-      <Button classes="flex-grow">Se høringssvar</Button>
-      <Button variant="secondary" classes="flex-grow">
+      <Button classes="grow">Se høringssvar</Button>
+      <Button variant="secondary" classes="grow">
         Afgiv høringssvar
       </Button>
     </NavigationBarAtom>

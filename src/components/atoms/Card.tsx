@@ -9,8 +9,8 @@ type CardProps = React.ComponentPropsWithRef<"div"> & {
 };
 
 const styling = {
-  root: "shadow",
-  rounded: "rounded",
+  root: "shadow-sm",
+  rounded: "rounded-sm",
 };
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(

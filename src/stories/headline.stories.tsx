@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Typography/Headline",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "Headline");
+const knobText = () => text("Text", "Novataris Kommune", "Headline");
 const knobTypeSelection = () => select("Type", ["heavy", "regular", "light"], "regular", "Headline");
 
 export const Headline = () => <HeadlineAtom type={knobTypeSelection()}>{knobText()}</HeadlineAtom>;

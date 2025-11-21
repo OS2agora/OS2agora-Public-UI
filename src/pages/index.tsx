@@ -1,5 +1,8 @@
 import Head from "next/head";
 import NextLink from "next/link";
+import React from "react";
+
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { useMediumDeviceDown } from "../hooks/mediaQueryHooks";
 import { Headline } from "../components/atoms/Headline";
@@ -12,43 +15,50 @@ import { FolderIcon, UserEditIcon, ArchiveIcon } from "../components/icons";
 import { useTranslation } from "../hooks/useTranslation";
 import { Container } from "../components/atoms/Container";
 import { ImageRenderer } from "../components/atoms/ImageRenderer";
+import { useImages } from "../hooks/useImages";
+import { useAppConfigContext } from "../hooks/useAppConfig";
+import { ACTIVE_HEARINGS_ROUTE, MY_HEARINGS_ROUTE, ARCHIVED_HEARINGS_ROUTE } from "../utilities/constants/routes";
 
 export default function Home() {
   const smallDevice = useMediumDeviceDown();
   const { translate } = useTranslation();
+  const { pagination } = useAppConfigContext();
+  const images = useImages();
 
   const TitleComponent = smallDevice ? Headline : Display;
   const TextComponent = smallDevice ? Body : SubHeader;
+
+  const activeHearingsPageRoute = pagination.hearings.enabled
+    ? `${ACTIVE_HEARINGS_ROUTE}?Page=1`
+    : ACTIVE_HEARINGS_ROUTE;
+  const myHearingsPageRoute = pagination.hearings.enabled ? `${MY_HEARINGS_ROUTE}?Page=1` : MY_HEARINGS_ROUTE;
+  const archivedHearingsPageRoute = pagination.hearings.enabled
+    ? `${ARCHIVED_HEARINGS_ROUTE}?Page=1`
+    : ARCHIVED_HEARINGS_ROUTE;
 
   return (
     <Container classes="flex-1">
       <Head>
         <title>{translate("frontpage", "metaTitle")}</title>
         <meta name="Description" content={translate("frontpage", "metaDescription")}></meta>
-        <link rel="icon" href="/logo.svg" />
-        <script
-          id="CookieConsent"
-          src="https://policy.app.cookieinformation.com/uc.js"
-          data-culture="DA"
-          type="text/javascript"
-        ></script>
+        <link rel="icon" href={images ? images?.headerLogo : ""} />
       </Head>
 
       <main className="flex flex-col tablet:items-center pt-10">
         {!smallDevice ? (
-          <NextLink href="/">
-            <a
-              href="/"
-              className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent"
-            >
+          <NextLink
+            href="/"
+            className="cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent"
+          >
+            {images?.mainLogo ? (
               <ImageRenderer
-                src="/logo.png"
+                src={images?.mainLogo}
                 alt={translate("frontpage", "imageAlt")}
                 width={67}
                 height={82}
-                className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent"
+                className="cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent"
               />
-            </a>
+            ) : null}
           </NextLink>
         ) : null}
 
@@ -61,7 +71,7 @@ export default function Home() {
           {translate("frontpage", "text")}
         </TextComponent>
         <div className="mt-14 mb-20 flex flex-col space-y-4 tablet:space-y-6">
-          <NextLink href="/activeHearings" passHref>
+          <NextLink href={activeHearingsPageRoute} passHref>
             <NavigationCard
               title={translate("frontpage", "card1Title")}
               text={translate("frontpage", "card1Text")}
@@ -69,7 +79,7 @@ export default function Home() {
               color="green"
             ></NavigationCard>
           </NextLink>
-          <NextLink href="/myHearings" passHref>
+          <NextLink href={myHearingsPageRoute} passHref>
             <NavigationCard
               title={translate("frontpage", "card2Title")}
               text={translate("frontpage", "card2Text")}
@@ -77,7 +87,7 @@ export default function Home() {
               color="blue"
             ></NavigationCard>
           </NextLink>
-          <NextLink href="/archivedHearings" passHref>
+          <NextLink href={archivedHearingsPageRoute} passHref>
             <NavigationCard
               title={translate("frontpage", "card3Title")}
               text={translate("frontpage", "card3Text")}
@@ -89,4 +99,12 @@ export default function Home() {
       </main>
     </Container>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale)),
+    },
+  };
 }

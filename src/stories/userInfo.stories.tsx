@@ -14,7 +14,6 @@ export const UserInfo = () => {
   const me = {
     displayName: knobName(),
     identifier: "",
-    personalIdentifier: "",
     isAdministrator: false,
     isHearingCreator: false,
     companyName: knobCompanyName(),

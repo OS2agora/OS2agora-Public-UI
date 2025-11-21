@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Typography/Body",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "Body");
+const knobText = () => text("Text", "Novataris Kommune", "Body");
 const knobTypeSelection = () => select("Type", ["heavy", "regular"], "heavy", "Body");
 
 export const Body = () => <BodyAtom type={knobTypeSelection()}>{knobText()}</BodyAtom>;

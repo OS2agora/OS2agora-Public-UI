@@ -16,7 +16,7 @@ const NoAccess = ({ title, text }: NoAccessProps) => {
 
   return (
     <main className="mt-8 desktop:mt-12 flex-1">
-      <Container classes="tablet:max-w-tabletHearingContent desktop:max-w-desktopHearingContent">
+      <Container classes="tablet:max-w-tablet-hearing-content desktop:max-w-desktop-hearing-content">
         <div className="mt-10">
           <HeadlineComponent type="heavy">{title}</HeadlineComponent>
           <ReactMarkdown

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { text } from "@storybook/addon-knobs";
+import { boolean, text } from "@storybook/addon-knobs";
 
 import { HearingContactInformation as HearingContactInformationMolecule } from "../components/molecules/HearingContactInformation";
 
@@ -15,6 +15,8 @@ const knobEmailTitle = () => text("Email Title", "E-mail", "HearingContactInform
 const knobEmail = () => text("Email", "bygge@bob.dk", "HearingContactInformation");
 const knobPhoneNumberTitle = () => text("Phone Number Title", "Telefon", "HearingContactInformation");
 const knobPhoneNumber = () => text("Phone Number", "+45 1234 5678", "HearingContactInformation");
+const knobEmailLinkText = () => text("Email Link Text", "Klik her", "HearingContactInformation");
+const knobEmailAsLink = () => boolean("Email as Link", false, "HearingContactInformation");
 
 export const HearingContactInformation = () => (
   <HearingContactInformationMolecule
@@ -26,5 +28,7 @@ export const HearingContactInformation = () => (
     email={knobEmail()}
     phoneNumberTitle={knobPhoneNumberTitle()}
     phoneNumber={knobPhoneNumber()}
+    emailLinkText={knobEmailLinkText()}
+    renderEmailAsLink={knobEmailAsLink()}
   />
 );

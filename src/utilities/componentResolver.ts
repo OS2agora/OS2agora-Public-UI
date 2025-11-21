@@ -5,7 +5,7 @@ import {
   FIELDTYPE_IMAGE,
   FIELDTYPE_SUMMARY,
   FIELDTYPE_TITLE,
-} from "./constants";
+} from "./constants/api";
 
 const mapTypeToComponentName = (type: number) => {
   switch (type) {

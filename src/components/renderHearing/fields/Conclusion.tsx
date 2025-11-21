@@ -7,6 +7,7 @@ import { Card } from "../../atoms/Card";
 import { Headline } from "../../atoms/Headline";
 import { Title } from "../../atoms/Title";
 import { CheckCircleIcon } from "../../icons";
+import { Document } from "../../atoms/Document";
 
 type ConclusionProps = {
   fieldData: HearingField;
@@ -28,6 +29,13 @@ const Conclusion = ({ fieldData }: ConclusionProps) => {
             // className markdown is used in custom.css
             className="markdown pt-2"
           />
+          {fieldData.fileContent?.length ? (
+            <div className={"mt-4"}>
+              {fieldData.fileContent.map((file, index) => (
+                <Document key={index} file={file} />
+              ))}
+            </div>
+          ) : null}
         </Card>
       </div>
     </>

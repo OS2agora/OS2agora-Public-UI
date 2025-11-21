@@ -10,12 +10,12 @@ const knobTitle = () => text("Title", "Høringsportalen", "Header");
 const knobLoginText = () => text("Login Text", "Log ind", "Header");
 const knobLogoutText = () => text("Logout Text", "Logud", "Header");
 const knobMyHearingsText = () => text("My Hearings Text", "Mine høringer", "Header");
-const knobPreText = () => text("Pre-Title Text", "Ballerup Kommune - ", "Header");
+const knobPreText = () => text("Pre-Title Text", "Novataris Kommune - ", "Header");
 
 export const Layout = () => (
   <LayoutMolecule
     header={{
-      image: { src: "/logo.svg", alt: "Ballerup Kommune Logo" },
+      image: { src: "/logo.svg", alt: "Novataris Kommune Logo" },
       title: knobTitle(),
       loginText: knobLoginText(),
       logoutText: knobLogoutText(),
@@ -23,8 +23,8 @@ export const Layout = () => (
       preTitle: knobPreText(),
     }}
     footer={{
-      image: { src: "/logo-white.png", alt: "Ballerup Kommune Logo" },
-      textLines: ["BALLERUP", "KOMMUNE", "Hold-an Vej 7", "2750 Ballerup", "Tlf.: 4477 2000", "Fax: 4477 2730"],
+      image: { src: "/logo-white.png", alt: "Novataris Kommune Logo" },
+      textLines: ["NOVATARIS", "KOMMUNE", "Nyhavn 43", "1051 København K", "Tlf.: 7027 8000", "Fax: 1234 5678"],
       internalLinks: [
         { text: "Tilgængelighedserklæring", href: "/" },
         { text: "Databeskyttelse", href: "/" },

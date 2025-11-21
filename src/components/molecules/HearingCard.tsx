@@ -10,6 +10,7 @@ import { StatusIndicator } from "../atoms/StatusIndicator";
 
 import { CheckCircleIcon, CommentIcon } from "../icons";
 import { Card } from "../atoms/Card";
+import { useImages } from "../../hooks/useImages";
 
 type HearingCardProps = {
   classes?: string;
@@ -34,9 +35,9 @@ type HearingCardProps = {
 };
 
 const styling = {
-  root: "h-full bg-white w-full tablet:w-tabletHearingCard desktop:w-desktopHearingCard",
-  image: "relative h-36  bg-grey-light bg-cover bg-no-repeat rounded-t",
-  dateContainer: "absolute bg-white rounded-b left-4 w-20 h-23 text-center",
+  root: "h-full bg-white w-full tablet:w-tablet-hearing-card desktop:w-desktop-hearing-card",
+  image: "relative h-52  bg-grey-light bg-cover bg-no-repeat rounded-t",
+  dateContainer: "absolute bg-white rounded-b left-4 w-22 h-23 text-center",
   dateText: "text-grey-dark pt-3.5",
   date: "text-blue-center pt-1",
   dateMonth: "text-blue-dark pt-0.5 uppercase",
@@ -48,7 +49,7 @@ const styling = {
   bottomContainer: "pt-6",
   bottomContainerStatus: "flex justify-between",
   archivedIcon: "absolute top-4 right-4 text-green-dark text-xl",
-  textContainer: "h-hearingCardText",
+  textContainer: "h-hearing-card-text",
 };
 
 const HearingCard = ({
@@ -70,13 +71,14 @@ const HearingCard = ({
   ...rest
 }: HearingCardProps) => {
   const className = clsx(styling.root, classes);
+  const images = useImages();
 
   return (
     <Card {...rest} rounded classes={className}>
       <div
         className={styling.image}
         style={{
-          backgroundImage: image ? `url(${image}), url(default-hearing-image.jpg)` : "url(default-hearing-image.jpg)",
+          backgroundImage: image ? `url(${image}), url(${images?.fallbackImage})` : `url(${images?.fallbackImage})`,
         }}
         aria-label={imageAlt || "Billede"}
       >

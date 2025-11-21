@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import React from "react";
 
 import { Small } from "./Small";
 
@@ -11,10 +12,11 @@ type StatusIndicatorProps = {
 const styling = {
   root: "inline-block",
   inner: "flex items-center h-6 px-2.5",
-  awaiting_startdate: "bg-grey-dark bg-opacity-25 border border-grey-dark text-grey-dark",
-  active: "bg-green-currentHearing bg-opacity-25 border border-green-currentHearing text-green-currentHearing",
-  concluded: "bg-blue-myHearings bg-opacity-25 border border-blue-myHearings text-blue-myHearings",
-  awaiting_conclusion: "bg-grey-dark bg-opacity-25 border border-grey-dark text-grey-dark",
+
+  awaiting_startdate: "bg-grey-dark/25 border border-grey-dark text-grey-dark",
+  active: "bg-green-current-hearing/25 border border-green-current-hearing text-green-current-hearing",
+  concluded: "bg-blue-my-hearings/25 border border-blue-my-hearings text-blue-my-hearings",
+  awaiting_conclusion: "bg-grey-dark/25 border border-grey-dark text-grey-dark",
 };
 
 const StatusIndicator = ({ classes, children, status = "active", ...rest }: StatusIndicatorProps) => {

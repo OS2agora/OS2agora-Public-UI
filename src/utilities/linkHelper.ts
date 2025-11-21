@@ -1,4 +1,5 @@
-import env from "@beam-australia/react-env";
+import { ENV_VARIABLE } from "./constants/environmentVariables";
+import { readEnvironmentVariable } from "./environmentHelper";
 
 function downloadFileFromUrl(url: string, fileName: string) {
   let localUrl = url;
@@ -6,7 +7,7 @@ function downloadFileFromUrl(url: string, fileName: string) {
     return;
   }
 
-  const xApiHeader = env("X_API_HEADER");
+  const xApiHeader = readEnvironmentVariable(ENV_VARIABLE.X_API_HEADER);
   if (typeof xApiHeader !== "undefined") {
     localUrl += `?apiKey=${xApiHeader}`;
   }
@@ -22,4 +23,10 @@ function downloadFileFromUrl(url: string, fileName: string) {
   document.body.removeChild(a);
 }
 
-export { downloadFileFromUrl };
+function validateLink(text?: string | null): boolean {
+  // eslint-disable-next-line no-useless-escape
+  const linkRegEx = /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
+  return linkRegEx.test(text || "");
+}
+
+export { downloadFileFromUrl, validateLink };

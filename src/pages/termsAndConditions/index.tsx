@@ -1,24 +1,22 @@
+import React from "react";
 import { GetStaticPropsContext } from "next";
 import Head from "next/head";
-import ReactMarkdown from "react-markdown";
-
-import { Container } from "../../components/atoms/Container";
-import { Headline } from "../../components/atoms/Headline";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { GlobalLoading } from "../../components/atoms/GlobalLoading";
-import { Title } from "../../components/atoms/Title";
-import { useLargeDeviceUp } from "../../hooks/mediaQueryHooks";
 import { useGetGlobalContent } from "../../hooks/pages/useGetGlobalContent";
 import { useGetGlobalContentTypeId } from "../../hooks/pages/useGetGlobalContentTypeId";
 import { useGetGlobalContentTypes } from "../../hooks/pages/useGetGlobalContentTypes";
 import { useTranslation } from "../../hooks/useTranslation";
-import { GLOBALCONTENTTYPE_TERMS_AND_CONDITIONS } from "../../utilities/constants";
+import { GLOBALCONTENTTYPE_TERMS_AND_CONDITIONS } from "../../utilities/constants/api";
+import { TERMS_AND_CONDITIONS_PAGE } from "../../utilities/constants/pages";
+import { GlobalContentBody } from "../../components/molecules/GlobalContentBody";
+import { Container } from "../../components/atoms/Container";
+import { Headline as HeadlineComponent } from "../../components/atoms/Headline";
+import ReactMarkdown from "react-markdown";
 
 // Routes to /termsAndConditions
 export default function TermsAndConditions() {
-  const largeDevice = useLargeDeviceUp();
   const { translate } = useTranslation();
-
-  const HeadlineComponent = largeDevice ? Headline : Title;
 
   const { globalContentTypes, isFetching: isFetchingGlobalContentTypes } = useGetGlobalContentTypes();
   const { id: termsAndConditionsGlobalContentTypeId } = useGetGlobalContentTypeId(
@@ -36,14 +34,14 @@ export default function TermsAndConditions() {
   return (
     <div className="flex-1">
       <Head>
-        <title>{translate("termsAndConditions", "metaTitle")}</title>
-        <meta name="Description" content={translate("termsAndConditions", "metaDescription")}></meta>
+        <title>{translate(TERMS_AND_CONDITIONS_PAGE, "metaTitle")}</title>
+        <meta name="Description" content={translate(TERMS_AND_CONDITIONS_PAGE, "metaDescription")}></meta>
         <link rel="icon" href="/logo.svg" />
       </Head>
       <main className="mt-8 desktop:mt-12">
-        <Container classes="tablet:max-w-tabletHearingContent desktop:max-w-desktopHearingContent">
+        <Container classes="tablet:max-w-tablet-hearing-content desktop:max-w-desktop-hearing-content">
           <HeadlineComponent type="heavy" classes="mt-10 tablet:mt-16">
-            {translate("termsAndConditions", "title")}
+            {translate(TERMS_AND_CONDITIONS_PAGE, "title")}
           </HeadlineComponent>
           <ReactMarkdown
             source={globalContent!}
@@ -52,13 +50,16 @@ export default function TermsAndConditions() {
           />
         </Container>
       </main>
+      <GlobalContentBody title={translate(TERMS_AND_CONDITIONS_PAGE, "title")} globalContent={globalContent} />
     </div>
   );
 }
 
-export function getStaticProps(context: GetStaticPropsContext) {
+export async function getStaticProps(context: GetStaticPropsContext) {
   return {
-    props: {},
+    props: {
+      ...(await serverSideTranslations(context.locale)),
+    },
     revalidate: 300, // In seconds - Every 5 minute
   };
 }

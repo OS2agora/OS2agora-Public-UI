@@ -1,20 +1,58 @@
-# OS2AGORA - Hearing Portal Public UI
+# OS2agora - Hearing Portal Public UI
 
-This repository contains the public UI for the Hearing Portal. The repository is part of the overall solution, which also consists of another frontend and a backend. 
+This repository contains the public frontend for OS2agora.  
+The repository is part of the overall solution, which also consists of an internal frontend used by employees to manage hearings and an API/backend.
 
-Hearing Portal Internal UI is located here: ([Github](https://github.com/OS2agora/Agora-Internal-UI)  
-Hearing Portal API is located here: [Github](https://github.com/OS2agora/Agora-Api)
+The internal frontend is located in [OS2agora-Internal-UI](https://github.com/OS2agora/OS2agora-Internal-UI)
+The Api and backend is located in [OS2agora-API](https://github.com/OS2agora/OS2agora-API)
 
+Technical documentation is located in [OS2agora-docs](https://github.com/OS2agora/OS2agora-docs)
+
+A complete setup for running the entire solution on your local machine is provided in [OS2agora-Infrastructure](https://github.com/OS2agora/OS2agora-Infrastructure)
 
 ## Technologies
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Required Tools
+
 ## Getting started
 The solution can be run locally both inside a Docker container and in regular fashion using Node. For local development, it is recommended that the solution is executed using Node. Both guides assume that the tools from the `Required tools` section are installed on the machine.
 
-### Configuration
+### Running locally using Node
 
-The applications requires a little configuration, mostly to find the api endpoint. These are delivered through environment variables that are either placed in `.env.local` for local development or passed as variables to the docker container. 
+1. Download solution from [GitHub](https://github.com/OS2agora/OS2agora-Public-UI)
+2. In the project /src folder, run one of the following commands to install the required dependencies
+    ``` cmd
+    yarn 
+    yarn install
+    ```
+3. Add required environment variables to `.env.local` located in the root folder. The required environment variables can be found in `.env.example`
+4. Start the application using the following command
+    ``` cmd
+    yarn dev
+    ```
+5. Using a browser, navigate to [http://localhost:3000](http://localhost:3000) and validate that the site is up and running
+
+### Running locally using Docker
+
+To run the entire OS2Agora solution in Docker, follow the instructions provided in the [OS2agora-Infrastructure](https://github.com/OS2agora/OS2agora-Infrastructure) repository.
+
+### Building the _agora-fe\_public_ Docker Image
+
+To run the entire OS2Agora solution, you need to build the _agora-fe\_public_ Docker Image from this repository. To build the image, follow these steps:
+
+1. From the project root, navigate to `/docker`
+2. In the `/docker` folder, run the following command to build a docker image of the solution
+
+    ``` bash
+    $ docker-compose -f docker-compose.build.yml build
+    ```
+
+The Dockerfile is located in the `/docker/image/app`
+
+## Configuration
+
+The applications requires some configuration, mostly to find the api endpoint. These are delivered through environment variables that are either placed in `.env.local` for local development or passed as variables to the docker container. 
 
 NextJS is [opinionated](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables) about environment variables, however, NextJS lacks the capability of providing dynamic runtime environment variables to the browser environment. This capability is alleviated in the solution using `@beam-australia/react-env`. Furthermore, the application has been configured for the following practice
 
@@ -36,109 +74,28 @@ SERVER_ONLY_API_URL=http://api:5000/api
 # If running without the proxy (outside docker) the x-api-header is necessary for the backend to validate the client application
 NEXT_PUBLIC_EXT_X_API_HEADER=GUID_HERE
 
+# Set theme, must be either *os2* or *novataris*
+NEXT_PUBLIC_EXT_THEME=os2
+
 # Version of the build running. Relevant for CI-produced builds
 NEXT_PUBLIC_BUILD_VERSION=development-101
 
 NODE_TLS_REJECT_UNAUTHORIZED=0 # For development / test with no valid HTTPS certificate only
 ```
 
-#### To configure the application for local development
+### Theme
+
+The application can run with several themes. Themes consist of configurations, images, texts, fonts. etc. Theme configurations are located in `src/themes`. Theme images are located in `/src/app/public/images/<theme>` and texts in the `/src/app/public/locales/<lng>/<theme>.json`
+
+Current themes:
+
+- `os2` (default)
+- `novataris`
+
+#### Adding a new theme
+
+To add a new theme, add a `.env.<theme name>` file in `/src/themes` and add relevant configurations. Add a folder with the name of the theme in `/src/app/public/images` - make sure to update the configurations with the correct filenames. Lastly add a `.json` file with the theme name in each language folder in `/src/app/public/locales`, containing all the text overrides you wish to use.
+
+### Configuring for local development
 
 Create a `.env.local` file with variable with the appropriate values for your setup and place the file in the `src` folder.
-
-### Running locally using Node
-
-1. Download solution from [Github](https://github.com/OS2agora/Agora-Public-UI)
-
-2. In the project /src folder, run one of the following commands to install the required dependencies
-    ``` cmd
-    yarn 
-    yarn install
-    ```
-
-3. Add required environment variables to `.env.local` located in the root folder. The required environment variables can be found in `.env.example`
-
-4. Start the application using the following command
-    ``` cmd
-    yarn dev
-    ```
-
-5. Using a browser, navigate to [http://localhost:3000](http://localhost:3000) and validate that the site is up and running
-
-### Running locally using Docker
-
-1. Download solution from [Github](https://github.com/OS2agora/Agora-Public-UI)
-
-2. Add required environment variables to `.env.local` located in the /src folder. The required environment variables can be found in `.env.example`
-
-3. In the /docker folder, run the following command in to build a docker image of the solution.
-
-    ``` bash
-    $ docker-compose -f docker-compose.development.yml build
-    ```
-
-    *Starting this solution in Docker requires the backend project to be up and running, as this uses a shared network that is defined in the backend Docker setup.
-
-4. In the /docker folder, run the following command in to start the docker container of the solution.
-
-    ``` bash
-    $ docker-compose -f docker-compose.development.yml up
-    ```
-5. Using a browser, navigate to [http://localhost:3000](http://localhost:3000) and validate that the site is up and running
-
-6. If your API is running in Docker you will need to alter you `.env.local` file. It is located in your root folder if you've created it, and if not, you should create it and copy the content from the `.env.example` file. Your `NEXT_PUBLIC_API_URL` should be `https://localhost:8080/api/`, if you have the api proxy running on port 8080.
-
-## Useful commands
-
-Run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
-
-## Run Storybook
-
-```bash
-npm run storybook
-# or
-yarn storybook
-```
-
-## Build Static Storybook
-
-```bash
-npm run build-storybook
-# or
-yarn build-storybook
-```
-
-## Clean SVGS
-
-```bash
-npm run clean-svgs
-# or
-yarn clean-svgs
-```
-
-## Build SVG components
-
-```bash
-npm run build:icons
-# or
-yarn build:icons
-```
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!

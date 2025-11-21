@@ -1,6 +1,6 @@
-import * as React from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import React from "react";
 
 import { Container } from "../../components/atoms/Container";
 import { Filter } from "../../components/molecules/Filter";
@@ -13,6 +13,9 @@ import { Headline } from "../atoms/Headline";
 import { Title } from "../atoms/Title";
 import { useTranslation } from "../../hooks/useTranslation";
 import ReactMarkdown from "react-markdown";
+import { Pagination } from "../molecules/Pagination";
+import { PaginationProps } from "../../hooks/usePagination";
+import { HEARING_ROUTE, HEARING_COMMENTS_ROUTE } from "../../utilities/constants/routes";
 
 type InputProps = {
   value: string;
@@ -26,22 +29,25 @@ type HearingsProps = {
   metaDescription: string;
   title: string;
   filter: string;
-  currentPage: string;
+  activePage: string;
   activeHearingsLabel: string;
   activeHearingsPath: string;
   myHearingsLabel: string;
   myHearingsPath: string;
   archivedHearingsLabel: string;
   archivedHearingsPath: string;
-  filterCheckboxLabel: string;
+  subjectAreaCheckboxLabel: string;
+  cityAreaCheckboxLabel: string;
   filterRadioButtonLabel: string;
   filterSubmitText: string;
   filterTitle: string;
   filterCloseButtonLabel: string;
-  filterCheckboxOptions: InputProps[];
+  subjectAreaCheckboxOptions: InputProps[];
+  cityAreaCheckboxOptions: InputProps[];
   searchPlaceholder: string;
   searchLabel: string;
   readCommentsLabel?: string | undefined;
+  pagination: PaginationProps;
 };
 
 const Hearings = ({
@@ -51,27 +57,31 @@ const Hearings = ({
   metaDescription,
   title,
   filter,
-  currentPage,
+  activePage,
   activeHearingsLabel,
   activeHearingsPath,
   myHearingsLabel,
   myHearingsPath,
   archivedHearingsLabel,
   archivedHearingsPath,
-  filterCheckboxLabel,
+  subjectAreaCheckboxLabel,
+  cityAreaCheckboxLabel,
   filterRadioButtonLabel,
   filterSubmitText,
   filterTitle,
   filterCloseButtonLabel,
-  filterCheckboxOptions,
+  subjectAreaCheckboxOptions,
+  cityAreaCheckboxOptions,
   searchPlaceholder,
   searchLabel,
   readCommentsLabel,
+  pagination,
 }: HearingsProps) => {
   const { translate } = useTranslation();
   const router = useRouter();
   const [isFilterOpen, setIsFilteropen] = React.useState(false);
   const [subjectAreas, setSubjectAreas] = React.useState(router.query.subjectArea);
+  const [cityAreas, setCityAreas] = React.useState(router.query.cityArea);
   const [searchTerm, setSearchTerm] = React.useState(router.query.search);
   const smallDevice = useMediumDeviceDown();
   const largeDevice = useLargeDeviceUp();
@@ -94,17 +104,33 @@ const Hearings = ({
 
   const filterHearings = React.useCallback(() => {
     return hearings.filter((hearing) => {
-      if (subjectAreas === undefined) {
+      if (subjectAreas === undefined && cityAreas === undefined) {
         return filterBySearchTerm(hearing);
       }
 
-      if (!subjectAreas.includes(hearing.subjectArea)) {
-        return false;
+      if (subjectAreas !== undefined) {
+        if (hearing.subjectArea === undefined) {
+          return false;
+        }
+
+        if (!subjectAreas.includes(hearing.subjectArea)) {
+          return false;
+        }
+      }
+
+      if (cityAreas !== undefined) {
+        if (hearing.cityArea === undefined) {
+          return false;
+        }
+
+        if (!cityAreas.includes(hearing.cityArea)) {
+          return false;
+        }
       }
 
       return filterBySearchTerm(hearing);
     });
-  }, [filterBySearchTerm, hearings, subjectAreas]);
+  }, [filterBySearchTerm, hearings, subjectAreas, cityAreas]);
 
   const filteredHearings = React.useMemo(() => filterHearings(), [filterHearings]);
 
@@ -113,48 +139,62 @@ const Hearings = ({
 
   function handleHearingCardClick(event: React.MouseEvent<HTMLButtonElement>, id: string) {
     event.preventDefault();
-    router.push(`/hearing/${id}`);
+    router.push({
+      pathname: HEARING_ROUTE,
+      query: { hearingId: id },
+    });
   }
 
   function handleReadCommentsClick(event: React.MouseEvent<HTMLButtonElement>, id: string) {
     event.preventDefault();
-    router.push(`hearing/${id}/comments`);
+    router.push({
+      pathname: HEARING_COMMENTS_ROUTE,
+      query: { hearingId: id },
+    });
   }
 
   function filterSubmit(values: any) {
-    const { hearingType, subjectAreas: localSubjectAreas } = values;
+    const { hearingType, subjectAreas: localSubjectAreas, cityAreas: localCityAreas } = values;
     const localCurrentpage = router.pathname.replace("/", "");
 
     if (hearingType !== localCurrentpage) {
       router.push({
         pathname: hearingType,
-        query: { ...router.query, subjectArea: localSubjectAreas },
+        query: pagination.enabled
+          ? { ...router.query, subjectArea: localSubjectAreas, cityArea: localCityAreas, Page: 1 }
+          : { ...router.query, subjectArea: localSubjectAreas, cityArea: localCityAreas },
       });
     }
 
+    const query = { ...router.query };
+
     if (localSubjectAreas.length > 0) {
-      router.push(
-        {
-          query: { ...router.query, subjectArea: localSubjectAreas },
-        },
-        undefined,
-        {
-          shallow: true,
-        }
-      );
+      query.subjectArea = localSubjectAreas;
     } else {
-      delete router.query.subjectArea;
-      router.push(
-        {
-          query: { ...router.query },
-        },
-        undefined,
-        {
-          shallow: true,
-        }
-      );
+      delete query.subjectArea;
     }
+
+    if (localCityAreas.length > 0) {
+      query.cityArea = localCityAreas;
+    } else {
+      delete query.cityArea;
+    }
+
+    if (pagination.enabled && (localCityAreas.length > 0 || localSubjectAreas.length > 0)) {
+      query.Page = "1";
+    }
+
+    router.push(
+      {
+        query,
+      },
+      undefined,
+      {
+        shallow: true,
+      }
+    );
     setSubjectAreas(localSubjectAreas);
+    setCityAreas(localCityAreas);
     setIsFilteropen(false);
   }
 
@@ -163,7 +203,7 @@ const Hearings = ({
       delete router.query.search;
       router.push(
         {
-          query: { ...router.query },
+          query: pagination.enabled ? { ...router.query, Page: 1 } : { ...router.query },
         },
         undefined,
         {
@@ -173,7 +213,9 @@ const Hearings = ({
     } else {
       router.push(
         {
-          query: { ...router.query, search: values.search },
+          query: pagination.enabled
+            ? { ...router.query, search: values.search, Page: 1 }
+            : { ...router.query, search: values.search },
         },
         undefined,
         { shallow: true }
@@ -201,16 +243,16 @@ const Hearings = ({
         />
 
         <Container classes="mt-10">
-          <div className="flex flex-wrap tablet:-mx-6 tablet:space-x-6">
+          <div className="flex flex-wrap gap-x-6 tablet:gap-x-5 desktop:gap-x-6">
             {isFetching ? (
-              <SpinnerIcon className="w-full tablet:w-tabletHearingCard desktop:w-desktopHearingCard self-center animate-spin text-5xl" />
+              <SpinnerIcon className="w-full tablet:w-tablet-hearing-card desktop:w-desktop-hearing-card self-center animate-spin text-5xl" />
             ) : (
               filteredHearings.map((hearing: HearingOverview, index) => {
                 return (
                   <HearingCard
                     onClick={(event) => handleHearingCardClick(event, hearing.id)}
                     onReadCommentsClick={(event) => handleReadCommentsClick(event, hearing.id)}
-                    classes={`mb-16 tablet:mb-10 desktop:mb-16 ${index === 0 ? "tablet:ml-6" : ""}`}
+                    classes={`mb-16 tablet:mb-10 desktop:mb-16`}
                     key={index}
                     shouldShowComments={hearing.shouldShowComments}
                     comments={hearing.numberOfComments}
@@ -235,9 +277,9 @@ const Hearings = ({
           </div>
           {filteredHearings.length === 0 && !isFetching ? (
             <div>
-              <HeadlineComponent type="heavy">{translate(currentPage, "noHearingsTitle")}</HeadlineComponent>
+              <HeadlineComponent type="heavy">{translate(activePage, "noHearingsTitle")}</HeadlineComponent>
               <ReactMarkdown
-                source={translate(currentPage, "noHearingsText")}
+                source={translate(activePage, "noHearingsText")}
                 // className markdown is used in custom.css
                 className="markdown mt-2 tablet:mt-4"
               />
@@ -245,14 +287,24 @@ const Hearings = ({
           ) : null}
         </Container>
 
+        {pagination.enabled && filteredHearings.length > 0 && !isFetching ? (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onChangePage={pagination.handleChangePage}
+          />
+        ) : null}
+
         <Filter
-          checkboxOptions={filterCheckboxOptions}
+          subjectAreaOptions={subjectAreaCheckboxOptions}
+          cityAreaOptions={cityAreaCheckboxOptions}
           onSubmit={(values) => filterSubmit(values)}
-          initialRadioButtonOption={currentPage}
+          initialRadioButtonOption={activePage}
           onCloseFilter={() => setIsFilteropen(false)}
-          initialCheckboxOptions={
+          initialSubjectAreas={
             Array.isArray(subjectAreas) ? subjectAreas : typeof subjectAreas === "undefined" ? [] : [subjectAreas]
           }
+          initialCityAreas={Array.isArray(cityAreas) ? cityAreas : typeof cityAreas === "undefined" ? [] : [cityAreas]}
           open={isFilterOpen}
           radioButtonOptions={[
             {
@@ -269,7 +321,8 @@ const Hearings = ({
             },
           ]}
           texts={{
-            checkboxLabel: filterCheckboxLabel,
+            subjectAreaLabel: subjectAreaCheckboxLabel,
+            cityAreaLabel: cityAreaCheckboxLabel,
             radioButtonLabel: filterRadioButtonLabel,
             submitText: filterSubmitText,
             title: filterTitle,

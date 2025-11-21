@@ -10,8 +10,20 @@ import {
   GlobalMessage,
   initialGlobalmessage,
   initialMe,
+  Pagination,
 } from "../contexts/AppConfig";
 import { QueryClient } from "react-query";
+
+const paginationConfig: Pagination = {
+  comments: {
+    enabled: true,
+    pageSize: 4,
+  },
+  hearings: {
+    enabled: true,
+    pageSize: 4,
+  },
+};
 
 function MyApp({ children }) {
   const [globalMessage, setGlobalmessage] = React.useState<GlobalMessage>(initialGlobalmessage);
@@ -26,8 +38,8 @@ function MyApp({ children }) {
   const [loading, setLoading] = React.useState(false);
   const [language, setLanguage] = React.useState("da");
 
-  function doLogin(redirectUri: string) {
-    console.log("doLogin", redirectUri);
+  function doLogin(redirectUri: string, loginAs: number) {
+    console.log("doLogin", redirectUri, loginAs);
   }
 
   function doLogout(redirectUri: string) {
@@ -47,9 +59,11 @@ function MyApp({ children }) {
     setGlobalMessage: setGlobalmessage,
     loading,
     setLoading,
+    pagination: paginationConfig,
+    theme: "Novataris",
   };
 
-  const queryClientRef = React.useRef<QueryClient>();
+  const queryClientRef = React.useRef<QueryClient>(null);
   if (!queryClientRef.current) {
     queryClientRef.current = new QueryClient();
   }

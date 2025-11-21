@@ -1,4 +1,9 @@
 import * as React from "react";
+import {
+  DEFAULT_PAGINATION_ENABLED,
+  DEFAULT_PAGINATION_PAGE_SIZE,
+  PaginatedItems,
+} from "../utilities/constants/paginatedItems";
 
 interface GlobalMessage {
   title: string;
@@ -6,6 +11,9 @@ interface GlobalMessage {
   multipleLineText?: string[];
   buttonText: string;
   show: boolean;
+  disableModal?: boolean;
+  canCancel?: boolean;
+  cancelButtonText?: string;
   onDismiss?: () => void;
 }
 
@@ -13,10 +21,19 @@ interface App {
   isReady: boolean;
 }
 
+interface PaginatedItem {
+  enabled: boolean;
+  pageSize: number;
+}
+
+interface Pagination {
+  [PaginatedItems.HEARINGS]: PaginatedItem;
+  [PaginatedItems.COMMENTS]: PaginatedItem;
+}
+
 interface Me {
   displayName: string;
   identifier: string;
-  personalIdentifier: string;
   isAdministrator: boolean;
   isHearingCreator: boolean;
   companyName: string | undefined;
@@ -28,12 +45,19 @@ interface Auth {
   me: Me;
 }
 
+interface LoginSettings {
+  showLoginModal: boolean;
+  redirectUri: string | null;
+}
+
 interface AppConfigContextInterface {
   app: App;
   setApp: React.Dispatch<React.SetStateAction<App>>;
   auth: Auth;
   setAuth: React.Dispatch<React.SetStateAction<Auth>>;
-  doLogin(redirectUri: string): void;
+  loginSettings: LoginSettings;
+  setLoginSettings: React.Dispatch<React.SetStateAction<LoginSettings>>;
+  doLogin(redirectUri: string, loginAs: number): void;
   doLogout(redirectUri: string): void;
   language: string;
   setLanguage: React.Dispatch<React.SetStateAction<string>>;
@@ -41,12 +65,17 @@ interface AppConfigContextInterface {
   setGlobalMessage: React.Dispatch<React.SetStateAction<GlobalMessage>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  pagination: Pagination;
+  theme: string;
 }
 
+const defaultPaginatedItem = {
+  enabled: DEFAULT_PAGINATION_ENABLED,
+  pageSize: DEFAULT_PAGINATION_PAGE_SIZE,
+};
 const initialMe = {
   displayName: "",
   identifier: "",
-  personalIdentifier: "",
   isAdministrator: false,
   isHearingCreator: false,
   companyName: "",
@@ -59,6 +88,11 @@ const initialValues: AppConfigContextInterface = {
     isAuthorizing: false,
     me: initialMe,
   },
+  loginSettings: {
+    showLoginModal: false,
+    redirectUri: null,
+  },
+  setLoginSettings: () => console.log("Not implemented"),
   doLogin: () => console.log("Not implemented"),
   doLogout: () => console.log("Not implemented"),
   globalMessage: initialGlobalmessage,
@@ -69,10 +103,15 @@ const initialValues: AppConfigContextInterface = {
   setGlobalMessage: () => console.log("Not implemented"),
   setLanguage: () => console.log("Not implemented"),
   setLoading: () => console.log("Not implemented"),
+  pagination: {
+    [PaginatedItems.HEARINGS]: defaultPaginatedItem,
+    [PaginatedItems.COMMENTS]: defaultPaginatedItem,
+  },
+  theme: "novataris",
 };
 
-const AppConfigContext = React.createContext<AppConfigContextInterface | null>(initialValues);
+const AppConfigContext = React.createContext<AppConfigContextInterface>(initialValues);
 AppConfigContext.displayName = "AppConfigContext";
 
-export { AppConfigContext, initialGlobalmessage, initialMe };
-export type { GlobalMessage, AppConfigContextInterface, App, Auth, Me };
+export { AppConfigContext, initialGlobalmessage, initialMe, defaultPaginatedItem };
+export type { GlobalMessage, AppConfigContextInterface, App, Auth, Me, Pagination, LoginSettings };

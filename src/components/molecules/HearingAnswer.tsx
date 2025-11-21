@@ -8,6 +8,7 @@ import { Document } from "../atoms/Document";
 import { IconButton } from "../atoms/IconButton";
 import { Small } from "../atoms/Small";
 import { CalendarIcon, EditIcon, TrashIcon } from "../icons";
+import { ResponderInfo } from "../../utilities/apiHelper";
 
 type HearingAnswerProps = {
   classes?: string;
@@ -22,13 +23,18 @@ type HearingAnswerProps = {
   date: string;
   commentNumberLabel: string;
   commentNumber: number;
-  isOwner?: boolean;
+  companyLabel: string;
+  responderInfo: ResponderInfo;
+  missingAddressInformationLabel: string;
+  employeeLabel: string;
+  citizenLabel: string;
   onCommentDelete(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void;
   onCommentEdit(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void;
   onBehalfOfLabel: string;
   onBehalfOf?: string;
   editCommentTooltip: string;
   deleteCommentTooltip: string;
+  hideResponderInfo: boolean;
 };
 
 const styling = {
@@ -40,6 +46,7 @@ const styling = {
   editContainer: "flex space-x-2.5",
   textContainer: "flex space-x-2 text-grey-dark",
   onBehalfOfContainer: "flex space-x-2 text-grey-dark mt-4",
+  addressContainer: "flex space-x-2 text-grey-dark mt-4",
 };
 
 const HearingAnswer = ({
@@ -50,13 +57,18 @@ const HearingAnswer = ({
   date,
   commentNumberLabel,
   commentNumber,
-  isOwner = false,
+  companyLabel,
+  responderInfo,
+  missingAddressInformationLabel,
+  employeeLabel,
+  citizenLabel,
   onCommentDelete,
   onCommentEdit,
   onBehalfOfLabel,
   onBehalfOf,
   editCommentTooltip,
   deleteCommentTooltip,
+  hideResponderInfo,
   ...rest
 }: HearingAnswerProps) => {
   const smallDevice = useMediumDeviceDown();
@@ -66,6 +78,40 @@ const HearingAnswer = ({
   const DateComponent = smallDevice ? Small : largeDevice ? Body : Caption;
 
   const textLines = (children as string).split("\r\n");
+
+  const formattedResponderInfo = [responderInfo?.streetName, responderInfo?.postalCode, responderInfo?.city]
+    .filter((info) => !!info)
+    .join(", ");
+
+  const responderAddressInfo = formattedResponderInfo || missingAddressInformationLabel;
+
+  function renderResponderInfo() {
+    if (hideResponderInfo) {
+      return null;
+    } else if (responderInfo.isCompany) {
+      return (
+        <div className={styling.addressContainer}>
+          <Body type="heavy">{companyLabel}:</Body>
+          <Body type="regular">{responderInfo.companyName}</Body>
+          <Body type="regular">{" - "}</Body>
+          <Body type="regular">{responderAddressInfo}</Body>
+        </div>
+      );
+    } else if (responderInfo.isEmployee) {
+      return (
+        <div className={styling.addressContainer}>
+          <Body type="heavy">{employeeLabel}</Body>
+        </div>
+      );
+    } else {
+      return (
+        <div className={styling.addressContainer}>
+          <Body type="heavy">{citizenLabel}:</Body>
+          <Body type="regular">{responderAddressInfo}</Body>
+        </div>
+      );
+    }
+  }
 
   return (
     <Card rounded classes={className} {...rest}>
@@ -98,7 +144,7 @@ const HearingAnswer = ({
             <Body type="regular">{commentNumber}</Body>
           </div>
         </div>
-        {isOwner ? (
+        {responderInfo.isCommentOwner ? (
           <div className={styling.editContainer}>
             <IconButton icon={<TrashIcon />} onClick={onCommentDelete} title={deleteCommentTooltip} />
             {canEditComment ? (
@@ -113,6 +159,7 @@ const HearingAnswer = ({
           </div>
         )}
       </div>
+      {renderResponderInfo()}
       {onBehalfOf && (
         <div className={styling.onBehalfOfContainer}>
           <Body type="heavy">{onBehalfOfLabel}</Body>

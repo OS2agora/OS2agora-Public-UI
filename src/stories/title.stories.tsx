@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Typography/Title",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "Title");
+const knobText = () => text("Text", "Novataris Kommune", "Title");
 const knobTypeSelection = () => select("Type", ["heavy", "regular", "light"], "regular", "Title");
 
 export const Title = () => <TitleAtom type={knobTypeSelection()}>{knobText()}</TitleAtom>;

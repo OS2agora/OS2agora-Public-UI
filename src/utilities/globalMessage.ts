@@ -28,6 +28,22 @@ function fileUploadError(
   });
 }
 
+function confirmCommentDelete(
+  appContext: AppConfigContextInterface,
+  translate: (page: string, key: string) => string,
+  onDismiss: () => void
+) {
+  appContext.setGlobalMessage({
+    show: true,
+    title: translate("global", "confirmCommentDeleteTitle"),
+    text: translate("global", "confirmCommentDeleteText"),
+    buttonText: translate("global", "confirmCommentDeleteButton"),
+    canCancel: true,
+    cancelButtonText: translate("global", "confirmCommentDeleteCancel"),
+    onDismiss,
+  });
+}
+
 function commentCreated(
   appContext: AppConfigContextInterface,
   translate: (page: string, key: string) => string,
@@ -86,4 +102,42 @@ function commentUpdated(
   });
 }
 
-export { requireLoginMessage, commentCreated, commentError, commentDeleted, commentUpdated, fileUploadError };
+function failedSessionRefresh(
+  appContext: AppConfigContextInterface,
+  translate: (page: string, key: string) => string,
+  onDismiss: () => void
+) {
+  appContext.setGlobalMessage({
+    show: true,
+    title: translate("global", "failedSessionRefreshTitle"),
+    text: translate("global", "failedSessionRefreshText"),
+    buttonText: translate("global", "failedSessionRefreshButton"),
+    onDismiss,
+  });
+}
+
+function sessionExpired(
+  appContext: AppConfigContextInterface,
+  translate: (page: string, key: string) => string,
+  onDismiss: () => void
+) {
+  appContext.setGlobalMessage({
+    show: true,
+    title: translate("global", "sessionExpiredTitle"),
+    text: translate("global", "sessionExpiredText"),
+    buttonText: translate("global", "sessionExpiredButton"),
+    onDismiss,
+  });
+}
+
+export {
+  requireLoginMessage,
+  confirmCommentDelete,
+  commentCreated,
+  commentError,
+  commentDeleted,
+  commentUpdated,
+  fileUploadError,
+  failedSessionRefresh,
+  sessionExpired,
+};

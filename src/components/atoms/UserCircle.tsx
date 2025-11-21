@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import React from "react";
 
 import { Small } from "./Small";
 import { Body } from "./Body";
@@ -14,7 +15,7 @@ type TitleProps = {
 const styling = {
   root:
     "bg-grey-dark rounded-full flex items-center justify-center text-white h-8 w-8 tablet:h-10 tablet:w-10 desktop:h-12 desktop:w-12",
-  container: "focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+  container: "focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
 };
 
 const components = {

@@ -1,9 +1,16 @@
+import React from "react";
+
 const typeCss = {
   large: "font-normal",
   heavy: "font-extrabold",
   regular: "font-normal",
   medium: "font-medium",
   light: "font-light",
+};
+
+const colorCss = {
+  error: "text-red",
+  default: "text-current",
 };
 
 const safeIndex = <T extends Record<string, unknown>, U extends keyof T, Z extends keyof T>(
@@ -26,4 +33,4 @@ const Typography = ({ children, component = "p", ...rest }: TypographyProps) => 
   return <Component {...rest}>{children}</Component>;
 };
 
-export { Typography, typeCss, safeIndex };
+export { Typography, typeCss, safeIndex, colorCss };

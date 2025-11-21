@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import React from "react";
 import { FieldHookConfig, useField } from "formik";
 
 import { LoupeIcon } from "../icons";
@@ -10,10 +11,10 @@ type SearchProps = FieldHookConfig<string> & {
 
 const styling = {
   root: "text-grey-dark",
-  container: "bg-white rounded flex items-center px-4 py-3",
+  container: "bg-white rounded-sm flex items-center px-4 py-3",
   input:
-    "pl-2 outline-none w-full text-black placeholder-grey-dark font-Lato text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
-  button: "focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+    "pl-2 outline-hidden w-full text-black placeholder-grey-dark font-Lato text-sm leading-5 focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
+  button: "focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
 };
 
 const Search = ({ classes, placeholder, ...rest }: SearchProps) => {

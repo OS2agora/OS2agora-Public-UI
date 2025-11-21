@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Status Indicator",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "StatusIndicator");
+const knobText = () => text("Text", "Novataris Kommune", "StatusIndicator");
 const knobStatusSelection = () =>
   select("Status", ["awaiting_startdate", "active", "awaiting_conclusion", "concluded"], "active", "StatusIndicator");
 

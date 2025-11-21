@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Typography/Small",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "Small");
+const knobText = () => text("Text", "Novataris Kommune", "Small");
 const knobTypeSelection = () => select("Type", ["heavy", "regular", "light"], "regular", "Small");
 
 export const Small = () => <SmallAtom type={knobTypeSelection()}>{knobText()}</SmallAtom>;

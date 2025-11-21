@@ -15,7 +15,7 @@ type FileProps = React.ComponentPropsWithRef<"div"> & {
 const styling = {
   root: "flex justify-between pb-2 items-end",
   text: "text-blue-center underline cursor-pointer",
-  icon: "text-blue-dark cursor-pointer flex-shrink-0",
+  icon: "text-blue-dark cursor-pointer shrink-0",
 };
 
 const File = ({ classes, children, file, onDelete, ...rest }: FileProps) => {

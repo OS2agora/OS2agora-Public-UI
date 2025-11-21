@@ -2,10 +2,21 @@ import * as React from "react";
 import { EntitySet, HearingComment, buildCommentsModel } from "../../utilities/apiHelper";
 import { useComments } from "../api/useComments";
 import { useAppConfigContext } from "../useAppConfig";
+import { PaginationProps } from "../usePagination";
+import { getPaginationMetaData } from "../../utilities/paginationHelper";
 
-const useGetComments = (canSeeHearing: boolean, hearingId: string) => {
+const useGetComments = (
+  canSeeHearing: boolean,
+  hearingId: string,
+  pagination: PaginationProps | null,
+  myCommentsOnly = false
+) => {
   const appContext = useAppConfigContext();
-  const { data: commentsData, isFetching: isFetchingComments, refetch: refetchComments } = useComments(hearingId);
+  const { data: commentsData, isFetching: isFetchingComments, refetch: refetchComments } = useComments(
+    hearingId,
+    pagination,
+    myCommentsOnly
+  );
   const [comments, setComments] = React.useState<HearingComment[]>([]);
   const [isFetching, setIsFecthing] = React.useState(true);
   const [entitySet, setEntitySet] = React.useState<EntitySet>();
@@ -29,10 +40,23 @@ const useGetComments = (canSeeHearing: boolean, hearingId: string) => {
     } else {
       const commentsEntitySet = new EntitySet(commentsData.data);
       const localComments = buildCommentsModel(appContext?.auth.me.identifier, commentsEntitySet);
+
+      if (pagination?.enabled) {
+        const meta = getPaginationMetaData(commentsData);
+        pagination.setTotalPages(meta?.totalPages ?? 1);
+      }
+
       setComments(localComments);
       setEntitySet(commentsEntitySet);
     }
-  }, [appContext?.auth.me.identifier, canSeeHearing, commentsData, hearingId]);
+  }, [
+    appContext?.auth.me.identifier,
+    canSeeHearing,
+    commentsData,
+    hearingId,
+    pagination?.totalPages,
+    pagination?.setTotalPages,
+  ]);
 
   React.useEffect(() => {
     const noData = !commentsData;

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import React from "react";
 
 import { Body } from "./Body";
 
@@ -9,7 +10,7 @@ type LinkProps = React.ComponentPropsWithRef<"a"> & {
 };
 
 const styling = {
-  root: "cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+  root: "cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
   text: "border-b border-transparent hover:border-grey",
   underline: "underline",
 };

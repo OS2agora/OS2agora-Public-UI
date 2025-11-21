@@ -15,9 +15,14 @@ import { NavigationBar } from "../atoms/NavigationBar";
 import { Button } from "../atoms/Button";
 import { HearingAnswer } from "../molecules/HearingAnswer";
 import { SubHeader } from "../atoms/SubHeader";
-import { HEARINGSTATUS_ACTIVE } from "../../utilities/constants";
+import { HEARINGSTATUS_ACTIVE } from "../../utilities/constants/api";
 import { ImageRenderer } from "../atoms/ImageRenderer";
 import useIsAuthorized from "../../hooks/useIsAuthorized";
+import { useImages } from "../../hooks/useImages";
+import { PaginationProps } from "../../hooks/usePagination";
+import { Pagination } from "../molecules/Pagination";
+import { readEnvironmentVariable } from "../../utilities/environmentHelper";
+import { ENV_VARIABLE } from "../../utilities/constants/environmentVariables";
 
 type CommentsProps = {
   hearing: HearingDetails;
@@ -27,6 +32,8 @@ type CommentsProps = {
   routeToLoginAndThenAnswerPage?(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void;
   deleteComment: (comment: HearingComment) => void;
   editComment: (comment: HearingComment) => void;
+  pagination: PaginationProps;
+  showResponseLimitWarning: boolean;
 };
 
 const Comments = ({
@@ -37,18 +44,37 @@ const Comments = ({
   routeToLoginAndThenAnswerPage,
   deleteComment,
   editComment,
+  pagination,
+  showResponseLimitWarning,
 }: CommentsProps) => {
   const { translate, translateWithReplace } = useTranslation();
   const smallDevice = useMediumDeviceDown();
   const largeDevice = useLargeDeviceUp();
+  const images = useImages();
   const [imageError, setImageError] = React.useState(false);
   const isAuthorized = useIsAuthorized();
 
-  const fallbackImage = imageError ? "/default-hearing-image.jpg" : hearing.image || "/default-hearing-image.jpg";
+  const hideResponderInfo = readEnvironmentVariable(ENV_VARIABLE.HIDE_RESPONDER_INFO) === "true";
+
+  const fallbackImage = imageError ? images?.fallbackImage : hearing.image || images?.fallbackImage;
 
   const canEditComment = canCommentOnHearing(hearing.hearingStatus);
 
   const HeadlineComponent = largeDevice ? Headline : Title;
+
+  const clampCommentDate = (commentDateString: string): string => {
+    try {
+      const [commentDay, commentMonth, commentyear] = commentDateString.match(/\d{2,4}/g)!;
+      const [hearingDay, hearingMonth, hearingyear] = hearing.deadline.match(/\d{2,4}/g)!;
+
+      const commentDate = new Date(Number(commentyear), Number(commentMonth) - 1, Number(commentDay));
+      const hearingDate = new Date(Number(hearingyear), Number(hearingMonth) - 1, Number(hearingDay));
+
+      return commentDate < hearingDate ? commentDateString : hearing.deadline;
+    } catch (error) {
+      return commentDateString;
+    }
+  };
 
   return (
     <div className="flex-1">
@@ -83,7 +109,7 @@ const Comments = ({
           endDateTitle={translate("hearing", "endDateTitle")}
           endDate={hearing.deadline}
         />
-        <Container classes="tablet:max-w-tabletHearingContent desktop:max-w-desktopHearingContent">
+        <Container classes="tablet:max-w-tablet-hearing-content desktop:max-w-desktop-hearing-content">
           <Summary fieldData={hearing.summaryField!} />
 
           <div className="mt-10">
@@ -107,31 +133,55 @@ const Comments = ({
                     onCommentEdit={() => editComment(comment)}
                     onCommentDelete={() => deleteComment(comment)}
                     commentNumber={comment.commentNumber}
-                    date={comment.date}
-                    isOwner={comment.isCommentOwner}
+                    date={clampCommentDate(comment.date)}
+                    companyLabel={translate("comments", "companyLabel")}
+                    responderInfo={comment.responderInfo}
+                    missingAddressInformationLabel={translate("comments", "missingAddressInformationLabel")}
+                    employeeLabel={translate("comments", "employeeLabel")}
+                    citizenLabel={translate("comments", "citizenLabel")}
                     documents={comment.documents}
                     commentNumberLabel={translate("comments", "commentNumber")}
                     onBehalfOfLabel={translate("comments", "onBehalfOfLabel")}
                     onBehalfOf={comment.onBehalfOf}
                     editCommentTooltip={translate("comments", "editCommentTooltip")}
                     deleteCommentTooltip={translate("comments", "deleteCommentTooltip")}
+                    hideResponderInfo={hideResponderInfo}
                   >
                     {comment.comment}
                   </HearingAnswer>
                 );
               })}
+            {pagination.enabled && hearingComments.length > 0 ? (
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onChangePage={pagination.handleChangePage}
+              />
+            ) : null}
           </div>
+          {showResponseLimitWarning && (
+            <div className="mt-10">
+              <SubHeader type="heavy" colorMode="error">
+                {translate("comments", "responseLimitWarningText")}
+              </SubHeader>
+            </div>
+          )}
           <NavigationBar fixed={false} classes="mt-9 tablet:mt-12 mb-20">
-            <Button variant="primary" classes="flex-grow" onClick={routeToHearingPage}>
+            <Button variant="primary" classes="grow" onClick={routeToHearingPage}>
               {translate("comments", "readHearingButton")}
             </Button>
             {hearing.hearingStatus === HEARINGSTATUS_ACTIVE ? (
               isAuthorized || (!isAuthorized && !routeToLoginAndThenAnswerPage) ? (
-                <Button variant="secondary" classes="flex-grow" onClick={routeToAnswerPage}>
+                <Button
+                  variant="secondary"
+                  classes="grow"
+                  onClick={routeToAnswerPage}
+                  disabled={showResponseLimitWarning}
+                >
                   {translate("comments", "answerHearingButton")}
                 </Button>
               ) : (
-                <Button variant="secondary" classes="flex-grow" onClick={routeToLoginAndThenAnswerPage}>
+                <Button variant="secondary" classes="grow" onClick={routeToLoginAndThenAnswerPage}>
                   {translate("comments", "answerHearingAfterLoginButton")}
                 </Button>
               )

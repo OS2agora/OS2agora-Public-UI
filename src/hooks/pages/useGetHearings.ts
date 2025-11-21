@@ -4,28 +4,31 @@ import {
   HearingOverview,
   createHearingStatusToTextMap,
   buildHearingOverviewModel,
+  CheckboxInput,
+  mapDataToCheckboxInput,
 } from "../../utilities/apiHelper";
 import { useHearings } from "../api/useHearings";
 import { useAppConfigContext } from "../useAppConfig";
 import { useTranslation } from "../useTranslation";
 import { useHearingTemplates } from "../api/useHearingTemplates";
 import { useSubjectAreas } from "../api/useSubjectAreas";
-
-type CheckboxInput = {
-  value: string;
-  text: string;
-};
+import { PaginationProps } from "../usePagination";
+import { getPaginationMetaData } from "../../utilities/paginationHelper";
+import { useCityAreas } from "../api/useCityAreas";
 
 const useGetHearings = (
-  currentPage: string,
-  predicateForShowingHearing: (hearing: HearingOverview, entityset: EntitySet) => boolean
+  activePage: string,
+  predicateForShowingHearing: (hearing: HearingOverview, entityset: EntitySet) => boolean,
+  pagination: PaginationProps
 ) => {
   const { translate } = useTranslation();
   const appContext = useAppConfigContext();
-  const { data: hearingsData, isFetching: isFetchingHearings } = useHearings();
+  const { data: hearingsData, isFetching: isFetchingHearings } = useHearings(activePage, pagination);
   const { data: hearingTemplateData, isFetching: isFetchingHearingTemplates } = useHearingTemplates();
   const { data: subjectAreaData, isFetching: isFetchingSubjectAreas } = useSubjectAreas();
+  const { data: cityAreaData, isFetching: isFetchingCityAreas } = useCityAreas();
   const [subjectAreas, setSubjectAreas] = React.useState<CheckboxInput[]>([]);
+  const [cityAreas, setCityAreas] = React.useState<CheckboxInput[]>([]);
   const [hearings, setHearings] = React.useState<HearingOverview[]>([]);
   const [isFetching, setIsFetching] = React.useState(true);
 
@@ -36,16 +39,24 @@ const useGetHearings = (
       !hearingTemplateData ||
       hearingTemplateData.isDataEmpty ||
       !subjectAreaData ||
-      subjectAreaData.isDataEmpty
+      subjectAreaData.isDataEmpty ||
+      !cityAreaData ||
+      cityAreaData.isDataEmpty
     ) {
       setHearings([]);
     } else {
-      const hearingsEntitySet = new EntitySet(hearingsData.data, hearingTemplateData.data, subjectAreaData.data);
-      const hearingLinkText = translate(currentPage, "hearingLinkText");
+      const hearingsEntitySet = new EntitySet(
+        hearingsData.data,
+        hearingTemplateData.data,
+        subjectAreaData.data,
+        cityAreaData.data
+      );
+      const hearingLinkText = translate(activePage, "hearingLinkText");
 
-      const deadlineText = translate(currentPage, "hearingDeadlineTitle");
+      const deadlineText = translate(activePage, "hearingDeadlineTitle");
 
       const localSubjectAreas: CheckboxInput[] = [];
+      const localCityAreas: CheckboxInput[] = [];
 
       const hearingStatusToText = createHearingStatusToTextMap(translate);
 
@@ -67,14 +78,23 @@ const useGetHearings = (
           return null;
         }
 
-        const subjectAreaIsRegistered = localSubjectAreas.some(
-          (subjectArea) => subjectArea.value === hearingOverview.subjectArea
-        );
-        if (!subjectAreaIsRegistered) {
-          localSubjectAreas.push({
-            value: hearingOverview.subjectArea,
-            text: hearingOverview.subjectArea,
-          });
+        if (!pagination.enabled) {
+          const subjectAreaIsRegistered = localSubjectAreas.some(
+            (subjectArea) => subjectArea.value === hearingOverview.subjectArea
+          );
+          if (!subjectAreaIsRegistered) {
+            localSubjectAreas.push({
+              value: hearingOverview.subjectArea,
+              text: hearingOverview.subjectArea,
+            });
+          }
+          const cityAreaIsRegistered = localCityAreas.some((cityArea) => cityArea.value === hearingOverview.cityArea);
+          if (!cityAreaIsRegistered && hearingOverview.cityArea) {
+            localCityAreas.push({
+              value: hearingOverview.cityArea,
+              text: hearingOverview.cityArea,
+            });
+          }
         }
         return hearingOverview;
       });
@@ -84,20 +104,40 @@ const useGetHearings = (
         return a.deadline.getTime() - b.deadline.getTime();
       });
 
+      if (pagination.enabled) {
+        const meta = getPaginationMetaData(hearingsData);
+        pagination.setTotalPages(meta?.totalPages ?? 1);
+        const allSubjectAreasAsCheckboxInput = mapDataToCheckboxInput(subjectAreaData, "subjectArea");
+        const allCityAreasAsCheckboxInput = mapDataToCheckboxInput(cityAreaData, "cityArea");
+        localSubjectAreas.push(...allSubjectAreasAsCheckboxInput);
+        localCityAreas.push(...allCityAreasAsCheckboxInput);
+      }
+
       setSubjectAreas(localSubjectAreas);
+      setCityAreas(localCityAreas);
       setHearings(hearingsSortedByDeadline);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, hearingsData, hearingTemplateData, subjectAreaData]);
+  }, [
+    activePage,
+    hearingsData,
+    hearingTemplateData,
+    subjectAreaData,
+    cityAreaData,
+    pagination.totalPages,
+    pagination.setTotalPages,
+  ]);
 
   React.useEffect(() => {
-    const noData = !hearingsData || !hearingTemplateData || !subjectAreaData;
+    const noData = !hearingsData || !hearingTemplateData || !subjectAreaData || !cityAreaData;
     const isAuthorizing = (appContext?.auth.isAuthorizing ?? true) || !(appContext?.app.isReady ?? false);
     const staticPropMode =
       hearingsData?.getStaticPropsMode ||
       hearingTemplateData?.getStaticPropsMode ||
-      subjectAreaData?.getStaticPropsMode;
-    const isFetchingSomething = isFetchingHearings || isFetchingHearingTemplates || isFetchingSubjectAreas;
+      subjectAreaData?.getStaticPropsMode ||
+      cityAreaData?.getStaticPropsMode;
+    const isFetchingSomething =
+      isFetchingHearings || isFetchingHearingTemplates || isFetchingSubjectAreas || isFetchingCityAreas;
     setIsFetching(
       noData || isAuthorizing || ((!!staticPropMode || isFetchingSomething) && (appContext?.auth.isAuthorized ?? true))
     );
@@ -110,10 +150,12 @@ const useGetHearings = (
     isFetchingHearingTemplates,
     isFetchingHearings,
     isFetchingSubjectAreas,
+    isFetchingCityAreas,
     subjectAreaData,
+    cityAreaData,
   ]);
 
-  return { hearings, subjectAreas, isFetching };
+  return { hearings, subjectAreas, cityAreas, isFetching };
 };
 
 export { useGetHearings };

@@ -16,7 +16,7 @@ type NavigationCardProps = {
 
 const styling = {
   root:
-    "h-26 flex p-6 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+    "h-26 flex p-6 bg-white cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
   container: "pl-4 flex flex-col",
 };
 
@@ -25,7 +25,7 @@ const NavigationCard = React.forwardRef<HTMLDivElement, NavigationCardProps>(
     const className = clsx(styling.root, classes);
 
     return (
-      <Card as="a" ref={ref} rounded classes={className} {...rest}>
+      <Card as="div" ref={ref} rounded classes={className} {...rest}>
         <ColorCircle as="span" icon={icon} color={color}></ColorCircle>
         <span className={styling.container}>
           <Title component="span" type="heavy">

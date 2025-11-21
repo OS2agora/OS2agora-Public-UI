@@ -10,9 +10,9 @@ type ColorCircleProps = {
 const styling = {
   root: "h-13 w-13 text-2xl rounded-full flex text-white items-center justify-center",
   background: {
-    green: "bg-green-currentHearing",
-    blue: "bg-blue-myHearings",
-    lightblue: "bg-blue-archivedHearings",
+    green: "bg-green-current-hearing",
+    blue: "bg-blue-my-hearings",
+    lightblue: "bg-blue-archived-hearings",
   },
 };
 

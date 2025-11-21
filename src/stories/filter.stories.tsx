@@ -53,10 +53,12 @@ export const Filter = () => {
           },
         ]}
         texts={{
-          checkboxLabel: "Fagområder",
+          subjectAreaLabel: "Fagområder",
+          cityAreaLabel: "Byområder",
           radioButtonLabel: "Høringstype",
           submitText: "Anvend filtrer",
           title: "Filtrer",
+          filterCloseButtonLabel: "luk filter",
         }}
       />
     </>

@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import Head from "next/head";
-import { Form, Formik } from "formik";
+import { ErrorMessage, Form, Formik } from "formik";
 
 import { Container } from "../atoms/Container";
 import { TitleBar } from "../molecules/TitleBar";
@@ -28,6 +28,8 @@ import { SubHeader } from "../atoms/SubHeader";
 import { fileUploadError } from "../../utilities/globalMessage";
 import { useAppConfigContext } from "../../hooks/useAppConfig";
 import { ImageRenderer } from "../atoms/ImageRenderer";
+import { useImages } from "../../hooks/useImages";
+import useCommentValidationConfiguration from "../../hooks/useCommentValidationConfiguration";
 
 type AnswerHearingForm = {
   showOnBehalfOf: boolean;
@@ -41,22 +43,31 @@ type AnswerHearingProps = {
   hearing: HearingDetails;
   termsAndCondtions: TermsAndConditions;
   initialComment: AnswerHearingForm;
+  showResponseLimitWarning: boolean;
   submit: (values: AnswerHearingForm) => void;
 };
 
-const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: AnswerHearingProps) => {
+const AnswerHearing = ({
+  hearing,
+  termsAndCondtions,
+  initialComment,
+  showResponseLimitWarning,
+  submit,
+}: AnswerHearingProps) => {
   const { translate, translateWithReplace } = useTranslation();
   const appContext = useAppConfigContext();
   const smallDevice = useMediumDeviceDown();
   const largeDevice = useLargeDeviceUp();
+  const images = useImages();
+  const validationConfig = useCommentValidationConfiguration();
   const [imageError, setImageError] = React.useState(false);
   const [seeConditions, setSeeCondtions] = React.useState(false);
 
-  const fallbackImage = imageError ? "/default-hearing-image.jpg" : hearing.image || "/default-hearing-image.jpg";
+  const fallbackImage = imageError ? images?.fallbackImage : hearing.image || images?.fallbackImage;
 
   const HeadlineComponent = largeDevice ? Headline : Title;
 
-  const maximumFileSize = 100;
+  const { maximumFileCount, maximumFileSize, maxFileNameLength, allowedFileTypes } = validationConfig.rules;
 
   const scrollRef = React.useRef(null);
   const scrollToPostHearingAnswerButton = () => scrollRef.current.scrollIntoView();
@@ -67,6 +78,31 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
       translate,
       files.map((file) => file.name)
     );
+  };
+
+  const renderPersonalInfoText = () => {
+    const personalInfoHeader = translate("answer", "personalInfoHeader");
+    const personalInfoText1 = translate("answer", "personalInfoText1");
+    const personalInfoText2 = translate("answer", "personalInfoText2");
+    const personalInfoText3 = translate("answer", "personalInfoText3");
+
+    const shouldRender = !!personalInfoHeader && (!!personalInfoText1 || !!personalInfoText2 || personalInfoText3);
+
+    return shouldRender ? (
+      <>
+        <SubHeader classes="mt-6 tablet:mt-8" type="heavy">
+          {personalInfoHeader}
+        </SubHeader>
+
+        {[personalInfoText1, personalInfoText2, personalInfoText3].map((infoText, index) =>
+          infoText ? (
+            <SubHeader classes="mt-2" type="light" key={index}>
+              {infoText}
+            </SubHeader>
+          ) : null
+        )}
+      </>
+    ) : null;
   };
 
   return (
@@ -102,9 +138,32 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
           endDateTitle={translate("hearing", "endDateTitle")}
           endDate={hearing.deadline}
         />
-        <Container classes="tablet:max-w-tabletHearingContent desktop:max-w-desktopHearingContent">
-          <Formik initialValues={initialComment} enableReinitialize onSubmit={(values) => submit(values)}>
-            {({ values, setFieldValue }) =>
+        <Container classes="tablet:max-w-tablet-hearing-content desktop:max-w-desktop-hearing-content">
+          <Formik
+            initialValues={initialComment}
+            validate={(values: AnswerHearingForm) => {
+              if (!values.hearingAnswer || !values.hearingAnswer.trim()) {
+                return { hearingAnswer: translate("answer", "emptyAnswerText") };
+              }
+              if (values.files?.some((f) => f.name.length > maxFileNameLength)) {
+                return { files: translate("answer", "fileNameExceedsLimit") };
+              }
+              if (allowedFileTypes && values.files?.some((f) => !validationConfig.isValidFileExtension(f.name))) {
+                return {
+                  files: `${translate(
+                    "answer",
+                    "invalidFileFormatErrorText"
+                  )} ${validationConfig.allowedFileTypesPrettyNames?.join(", ")}`,
+                };
+              }
+            }}
+            enableReinitialize
+            onSubmit={(values, { setSubmitting }) => {
+              submit(values);
+              setSubmitting(false);
+            }}
+          >
+            {({ values, setFieldValue, dirty, isSubmitting, isValid, submitCount }) =>
               seeConditions ? (
                 <>
                   <HeadlineComponent type="heavy" classes="mt-10 tablet:mt-16">
@@ -115,35 +174,44 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
                     // className markdown is used in custom.css
                     className="markdown mt-2 tablet:mt-4"
                   />
-                  <div className="mt-10 tablet:mt-1 4 desktop:mt-16 mb-8 tablet:mb-20">
-                    <Checkbox
-                      name="conditions"
-                      single
-                      customOnChange={() => {
+                  <NavigationBar fixed={false} classes="mt-9 tablet:mt-12 mb-20">
+                    <Button
+                      variant="secondary"
+                      classes="grow"
+                      onClick={() => {
                         setSeeCondtions(false);
                         scrollToPostHearingAnswerButton();
                       }}
                     >
-                      <button
-                        className="text-blue-center underline cursor-pointer"
-                        onClick={() => {
-                          setSeeCondtions(false);
-                          setFieldValue("conditions", true, false);
-                          scrollToPostHearingAnswerButton();
-                        }}
-                      >
-                        {translate("answer", "termsAndConditionsAccept")}
-                      </button>
-                    </Checkbox>
-                  </div>
+                      {translate("answer", "termsAndConditionsCancelButton")}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      classes="grow"
+                      onClick={() => {
+                        setSeeCondtions(false);
+                        setFieldValue("conditions", true, false);
+                        scrollToPostHearingAnswerButton();
+                      }}
+                    >
+                      {translate("answer", "termsAndConditionsAcceptButton")}
+                    </Button>
+                  </NavigationBar>
                 </>
               ) : (
                 <>
                   <Summary fieldData={hearing.summaryField!} />
+                  {showResponseLimitWarning && (
+                    <div className="mt-10">
+                      <SubHeader type="heavy" colorMode="error">
+                        {translate("comments", "responseLimitWarningText")}
+                      </SubHeader>
+                    </div>
+                  )}
                   <Form className="mt-10">
                     <FormControl>
                       <FormLabel>{translate("answer", "hearingAnswer")}</FormLabel>
-                      <div className="mt-2">
+                      <div className="mt-4">
                         <Checkbox name="showOnBehalfOf" single>
                           <Caption type="large">{translate("answer", "answerOnBehalfOf")}</Caption>
                         </Checkbox>
@@ -160,6 +228,7 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
                       <SubHeader classes="mt-6 tablet:mt-8" type="light">
                         {translate("answer", "hearingAnswerHelperText")}
                       </SubHeader>
+                      {renderPersonalInfoText()}
                       <Textarea
                         name="hearingAnswer"
                         placeholder={translate("answer", "writeHearingAnswerPlaceholder")}
@@ -167,6 +236,8 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
                       >
                         {translate("answer", "hearingAnswerLabel")}
                       </Textarea>
+                      <ErrorMessage name="hearingAnswer" component="div" className="text-red italic" />
+                      <ErrorMessage name="files" component="div" className="text-red italic" />
                       <div className="mt-10">
                         <FormLabel>{translate("answer", "attachFiles")}</FormLabel>
                         <div className="flex flex-col">
@@ -179,6 +250,12 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
                                 multiple
                                 classes="mt-4"
                                 onUploadFileError={onFileUploadError}
+                                maxFileCountText={translate("answer", "maximumFileCount")}
+                                maxFileCount={maximumFileCount}
+                                allowedFileTypesText={translate("answer", "allowedFileTypesText")}
+                                allowedFileTypes={
+                                  validationConfig.allowedMimes && Array.from(validationConfig.allowedMimes)
+                                }
                               >
                                 {translate("answer", "buttonFileUpload")}
                               </ButtonFileUpload>
@@ -192,6 +269,12 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
                               classes="mt-4 tablet:mt-6 desktop:mt-8"
                               maxFileSizeText={translate("answer", "maximumFileSize")}
                               onUploadFileError={onFileUploadError}
+                              maxFileCountText={translate("answer", "maximumFileCount")}
+                              maxFileCount={maximumFileCount}
+                              allowedFileTypes={
+                                validationConfig.allowedMimes && Array.from(validationConfig.allowedMimes)
+                              }
+                              allowedFileTypesText={translate("answer", "allowedFileTypesText")}
                             >
                               {translate("answer", "dropFileUpload")}
                             </DropFileUpload>
@@ -235,7 +318,13 @@ const AnswerHearing = ({ hearing, termsAndCondtions, initialComment, submit }: A
                       </div>
                     </FormControl>
                     <NavigationBar fixed={false} classes="mt-9 tablet:mt-12 mb-20">
-                      <Button disabled={!values.conditions} variant="primary" classes="flex-grow" type="submit">
+                      <Button
+                        outlineColor={submitCount > 0 && dirty && !isValid ? "red" : undefined}
+                        disabled={!values.conditions || isSubmitting || showResponseLimitWarning}
+                        variant="primary"
+                        classes="grow"
+                        type="submit"
+                      >
                         {translate("answer", "postHearingAnswerButton")}
                       </Button>
                     </NavigationBar>

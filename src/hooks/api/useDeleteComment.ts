@@ -4,6 +4,7 @@ import { ApiClient } from "../../utilities/apiClient";
 import { commentDeleted, commentError } from "../../utilities/globalMessage";
 import { useAppConfigContext } from "../useAppConfig";
 import { useTranslation } from "../useTranslation";
+import { HEARING_COMMENTS_ROUTE } from "../../utilities/constants/routes";
 
 type DeleteCommentProps = {
   hearingId: string;
@@ -25,7 +26,7 @@ function useDeleteComment() {
     onSuccess: (_, variables) => {
       commentDeleted(appContext!, translate, () =>
         router.push({
-          pathname: "/hearing/[hearingId]/comments",
+          pathname: HEARING_COMMENTS_ROUTE,
           query: { hearingId: variables.hearingId },
         })
       );

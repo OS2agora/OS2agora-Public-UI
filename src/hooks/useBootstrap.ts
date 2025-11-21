@@ -5,19 +5,15 @@ import { getAuthorized } from "./api/useAuthorized";
 import { getMe } from "./api/useMe";
 import { useAppConfigContext } from "./useAppConfig";
 import { startRefreshTokenFlow } from "../utilities/refreshTokenFlow";
+import { useRouter } from "next/router";
 import { EntityReference, EntitySet } from "../utilities/apiHelper";
-import {
-  COMPANY,
-  IDENTIFIER,
-  IS_ADMINISTRATOR,
-  IS_HEARINGCREATOR,
-  NAME,
-  PERSONALIDENTIFIER,
-  USER,
-} from "../utilities/constants";
+import { COMPANY, IDENTIFIER, IS_ADMINISTRATOR, IS_HEARINGCREATOR, NAME, USER } from "../utilities/constants/api";
+import { useTranslation } from "./useTranslation";
 
 export default function useBootstrap(queryClient: QueryClient) {
   const appContext = useAppConfigContext();
+  const { translate } = useTranslation();
+  const router = useRouter();
 
   React.useEffect(() => {
     async function asyncWrapper() {
@@ -36,20 +32,21 @@ export default function useBootstrap(queryClient: QueryClient) {
         }
 
         if (authorized) {
-          startRefreshTokenFlow();
+          startRefreshTokenFlow(appContext, translate, () => appContext.doLogout(window.location.origin));
 
           const meData = await getMe();
           const meEntitySet = new EntitySet(meData);
           const me = meEntitySet.getAllOfType(USER)[0];
           const myCompanyReference = me.getRelationships(COMPANY) as EntityReference;
+
           let companyName = undefined as string | undefined;
           if (myCompanyReference !== null) {
             const myCompany = meEntitySet.getEntityByReference(myCompanyReference);
             companyName = myCompany?.getAttribute(NAME)?.toString();
           }
+
           const displayName = me.getAttribute(NAME);
           const identifier = me.getAttribute(IDENTIFIER);
-          const personalIdentifier = me.getAttribute(PERSONALIDENTIFIER);
           const isAdministrator = me.getAttribute(IS_ADMINISTRATOR);
           const isHearingCreator = me.getAttribute(IS_HEARINGCREATOR);
 
@@ -59,7 +56,6 @@ export default function useBootstrap(queryClient: QueryClient) {
             me: {
               displayName: String(displayName),
               identifier: String(identifier),
-              personalIdentifier: String(personalIdentifier),
               isAdministrator: Boolean(isAdministrator),
               isHearingCreator: Boolean(isHearingCreator),
               companyName,

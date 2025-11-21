@@ -6,7 +6,7 @@ export default {
   title: "Design System/Atoms/Typography/Display",
 };
 
-const knobText = () => text("Text", "Ballerup Kommune", "Display");
+const knobText = () => text("Text", "Novataris Kommune", "Display");
 
 const knobTypeSelection = () => select("Type", ["heavy", "light"], "heavy", "Display");
 

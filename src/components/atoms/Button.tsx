@@ -7,10 +7,11 @@ type ButtonProps = React.ComponentPropsWithoutRef<"button"> & {
   classes?: string;
   children: React.ReactNode;
   variant?: "primary" | "secondary";
+  outlineColor?: "red";
 };
 
 const styling = {
-  root: "py-3 px-10 rounded focus:outline-none focus:ring-2 focus:ring-green-currentHearing focus:border-transparent",
+  root: "py-3 px-10 rounded-sm",
   variants: {
     primary: "bg-blue-center text-white",
     secondary: "bg-white text-blue-center border border-blue-center",
@@ -21,8 +22,12 @@ const styling = {
     secondary: "hover:text-blue-grey hover:border-blue-grey",
   },
   active: {
-    primary: "active:bg-blue-centerClick active:text-white",
-    secondary: "active:text-blue-centerClick active:border-blue-centerClick",
+    primary: "active:bg-blue-center-click active:text-white",
+    secondary: "active:text-blue-center-click active:border-blue-center-click",
+  },
+  outlineColor: {
+    default: "focus:outline-hidden focus:ring-2 focus:ring-green-current-hearing focus:border-transparent",
+    red: "ring-2 ring-red",
   },
   text: "block",
 };
@@ -30,6 +35,7 @@ const styling = {
 const Button = ({
   classes,
   children,
+  outlineColor,
   variant = "primary",
   disabled = false,
   type = "button",
@@ -40,7 +46,8 @@ const Button = ({
     disabled ? styling.disabled : styling.variants[variant],
     styling.hover[variant],
     styling.active[variant],
-    classes
+    classes,
+    outlineColor ? styling.outlineColor[outlineColor] : styling.outlineColor.default
   );
 
   return (
