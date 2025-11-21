@@ -4,6 +4,7 @@ This repository contains the public frontend for OS2agora.
 The repository is part of the overall solution, which also consists of an internal frontend used by employees to manage hearings and an API/backend.
 
 The internal frontend is located in [OS2agora-Internal-UI](https://github.com/OS2agora/OS2agora-Internal-UI)
+
 The Api and backend is located in [OS2agora-API](https://github.com/OS2agora/OS2agora-API)
 
 Technical documentation is located in [OS2agora-docs](https://github.com/OS2agora/OS2agora-docs)
